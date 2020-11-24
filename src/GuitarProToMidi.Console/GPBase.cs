@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 abstract public class GPFile
 {
@@ -27,7 +26,7 @@ abstract public class GPFile
     public string copyright ;
     public string tab_author ;
     public string instructional ;
-    public int[] versionTuple = new int[] { }; 
+    public int[] versionTuple = new int[] { };
     public string version = "";
     public List<Lyrics> lyrics = new List<Lyrics>();
     public List<MeasureHeader> measureHeaders = new List<MeasureHeader>();
@@ -152,13 +151,12 @@ public class GPBase
     public static byte[] extract(int start, int length, bool advance_pointer)
     {
        if (length <= 0)
-        {  
+        {
             return new byte[Math.Max(0, length)];
         }
         if (length + start > data.Length)
         {
             return new byte[Math.Max(0, length)];
-            return null;
         }
 
             byte[] ret = new byte[length];
@@ -274,7 +272,7 @@ public class BeatEffect
             pickStroke == def.pickStroke && fadeIn == def.fadeIn &&
             vibrato == def.vibrato && tremoloBar == def.tremoloBar &&
             slapEffect == def.slapEffect);
-        
+
     }
 }
 
@@ -288,7 +286,7 @@ public class BeatStroke
     public BeatStroke(BeatStrokeDirection d, int v, float s)
     {
         direction = d;
-        value = v; 
+        value = v;
         startTime = s;
     }
 
@@ -387,7 +385,7 @@ public class BendPoint
 
     public BendPoint(float position, float value, bool isGP6Format = true)
     {
-        if (isGP6Format) { 
+        if (isGP6Format) {
         //GP6 Format: position: 0-100, value: 100 = 1 whole tone up
         this.position = (int)(position * BendEffect.maxPosition / 100);
         this.value = (int)(value*2*BendEffect.semitoneLength / 100);
@@ -398,7 +396,7 @@ public class BendPoint
             this.position = (int)position;
             this.value = (int)value;
             GP6position = position * 100.0f / BendEffect.maxPosition;
-            GP6value = value * 50.0f / BendEffect.semitoneLength; 
+            GP6value = value * 50.0f / BendEffect.semitoneLength;
         }
     }
 
@@ -995,7 +993,7 @@ public class PitchClass
             else
             {
                 value = arg0i % 12;
-               
+
                 str = _notes_sharp[Math.Max(value,0)];
                 if (intonation.Equals("flat")) str = _notes_flat[value];
             }
