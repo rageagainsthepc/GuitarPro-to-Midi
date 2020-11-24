@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using NLog;
 
 namespace GuitarProToMidi
 {
-    public class GpFileParser {
+    public class GpFileParser
+    {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private readonly string _title;
@@ -19,12 +19,12 @@ namespace GuitarProToMidi
             _extension = Path.GetExtension(filePath);
         }
 
-        public void CreateMidiFile()
+        public void CreateMidiFile(string outputPath, bool overwrite)
         {
             var loader = File.ReadAllBytes(_filePath);
             //Detect Version by Filename
-            int version = 7;
-            string fileEnding = _extension;
+            var version = 7;
+            var fileEnding = _extension;
             if (fileEnding.Equals(".gp3")) version = 3;
             if (fileEnding.Equals(".gp4")) version = 4;
             if (fileEnding.Equals(".gp5")) version = 5;
@@ -51,35 +51,35 @@ namespace GuitarProToMidi
                     _gpfile = _gpfile.self; //Replace with transferred GP5 file
                     break;
                 case 7:
-                    byte[] buffer = new byte[8200000];
-                    MemoryStream stream = new MemoryStream(buffer);
+                    var buffer = new byte[8200000];
+                    var stream = new MemoryStream(buffer);
                     using (var unzip = new Unzip(_filePath))
                     {
                         unzip.Extract("Content/score.gpif", stream);
                         stream.Position = 0;
                         var sr = new StreamReader(stream);
-                        string gp7xml = sr.ReadToEnd();
+                        var gp7Xml = sr.ReadToEnd();
 
-                        _gpfile = new GP7File(gp7xml);
+                        _gpfile = new GP7File(gp7Xml);
                         _gpfile.readSong();
                         _gpfile = _gpfile.self; //Replace with transferred GP5 file
-
                     }
+
                     break;
                 default:
                     Logger.Error("Unknown File Format");
                     break;
             }
+
             Logger.Debug("Done");
 
             var song = new NativeFormat(_gpfile);
             var midi = song.toMidi();
-            List<byte> data = midi.createBytes();
+            var data = midi.createBytes();
             var dataArray = data.ToArray();
-            using (var fs = new FileStream(Path.Join(Path.GetDirectoryName(_filePath), $"{_title}.mid"), FileMode.OpenOrCreate, FileAccess.Write))
-            {
-                fs.Write(dataArray, 0, dataArray.Length);
-            }
+            using var fs = new FileStream(outputPath ?? Path.Join(Path.GetDirectoryName(_filePath), $"{_title}.mid"),
+                overwrite ? FileMode.Create : FileMode.CreateNew, FileAccess.Write);
+            fs.Write(dataArray, 0, dataArray.Length);
         }
     }
 }
