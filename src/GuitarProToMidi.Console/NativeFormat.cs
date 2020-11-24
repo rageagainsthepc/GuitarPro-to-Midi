@@ -1,33 +1,28 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using NLog;
 
-namespace Native { 
+namespace GuitarProToMidi {
     public class NativeFormat  {
+        private readonly string _title;
+        private readonly string _subtitle;
+        private readonly string _artist;
+        private readonly string _album;
+        private readonly string _words;
+        private readonly string _music;
 
-        public string title = "";
-        public string subtitle = "";
-        public string artist  = "";
-        public string album = "";
-        public string words = "";
-        public string music = "";
+        private readonly List<Annotation> _annotations = new List<Annotation>();
+        private readonly List<Tempo> _tempos;
+        private readonly List<MasterBar> _barMaster;
+        private readonly List<Track> _tracks;
+        private readonly List<int> _notesInMeasures = new List<int>();
+        public static readonly bool[] AvailableChannels = new bool[16];
 
-        public List<DirectionSign> directions = new List<DirectionSign>();
-        public List<Annotation> annotations = new List<Annotation>();
-        public List<Tempo> tempos = new List<Tempo>();
-        public List<MasterBar> barMaster = new List<MasterBar>();
-        public List<Track> tracks = new List<Track>();
-        public List<Lyrics> lyrics = new List<Lyrics>();
-
-        
-        private List<int> notesInMeasures = new List<int>();
-        public static bool[] availableChannels = new bool[16];
         public MidiExport.MidiExport toMidi()
         {
             MidiExport.MidiExport mid = new MidiExport.MidiExport();
             mid.midiTracks.Add(getMidiHeader()); //First, untitled track
-            foreach (Track track in tracks)
+            foreach (Track track in _tracks)
             {
                 mid.midiTracks.Add(track.getMidi());
             }
@@ -37,23 +32,23 @@ namespace Native {
         private MidiExport.MidiTrack getMidiHeader()
         {
             var midiHeader = new MidiExport.MidiTrack();
-            //text(s) - name of song, artist etc., created by Gitaro 
+            //text(s) - name of song, artist etc., created by Gitaro
             //copyright - by Gitaro
-            //midi port 0 
+            //midi port 0
             //time signature
             //key signature
             //set tempo
             ///////marker text (will be seen in file) - also Gitaro copyright blabla
             //end_of_track
             midiHeader.messages.Add(new MidiExport.MidiMessage("track_name", new string[] { "untitled" }, 0));
-            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { title }, 0));
-            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { subtitle }, 0));
-            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { artist }, 0));
-            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { album }, 0));
-            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { words }, 0));
-            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { music }, 0));
+            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { _title }, 0));
+            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { _subtitle }, 0));
+            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { _artist }, 0));
+            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { _album }, 0));
+            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { _words }, 0));
+            midiHeader.messages.Add(new MidiExport.MidiMessage("text", new string[] { _music }, 0));
             midiHeader.messages.Add(new MidiExport.MidiMessage("copyright", new string[] { "Copyright 2017 by Gitaro" }, 0));
-            midiHeader.messages.Add(new MidiExport.MidiMessage("marker", new string[] { title+" / "+artist+" - Copyright 2017 by Gitaro" }, 0));
+            midiHeader.messages.Add(new MidiExport.MidiMessage("marker", new string[] { _title+" / "+_artist+" - Copyright 2017 by Gitaro" }, 0));
             midiHeader.messages.Add(new MidiExport.MidiMessage("midi_port", new string[] { "0" }, 0));
 
             //Get tempos from List tempos, get key_signature and time_signature from barMaster
@@ -62,37 +57,37 @@ namespace Native {
             var currentIndex = 0;
             var oldTimeSignature = "";
             var oldKeySignature = "";
-            if (tempos.Count == 0) tempos.Add(new Tempo());
-            while (tempoIndex < tempos.Count || masterBarIndex < barMaster.Count)
+            if (_tempos.Count == 0) _tempos.Add(new Tempo());
+            while (tempoIndex < _tempos.Count || masterBarIndex < _barMaster.Count)
             {
 
                 //Compare next entry of both possible sources
-                if (tempoIndex == tempos.Count || tempos[tempoIndex].position >= barMaster[masterBarIndex].index) //next measure comes first
+                if (tempoIndex == _tempos.Count || _tempos[tempoIndex].position >= _barMaster[masterBarIndex].index) //next measure comes first
                 {
-                    if (!barMaster[masterBarIndex].keyBoth.Equals(oldKeySignature))
+                    if (!_barMaster[masterBarIndex].keyBoth.Equals(oldKeySignature))
                     {
                         //Add Key-Sig to midiHeader
-                        midiHeader.messages.Add(new MidiExport.MidiMessage("key_signature", new string[] { ""+ barMaster[masterBarIndex].key, ""+ barMaster[masterBarIndex].keyType }, barMaster[masterBarIndex].index - currentIndex));
-                        currentIndex = barMaster[masterBarIndex].index;
+                        midiHeader.messages.Add(new MidiExport.MidiMessage("key_signature", new string[] { ""+ _barMaster[masterBarIndex].key, ""+ _barMaster[masterBarIndex].keyType }, _barMaster[masterBarIndex].index - currentIndex));
+                        currentIndex = _barMaster[masterBarIndex].index;
 
-                        oldKeySignature = barMaster[masterBarIndex].keyBoth;
+                        oldKeySignature = _barMaster[masterBarIndex].keyBoth;
                     }
-                    if (!barMaster[masterBarIndex].time.Equals(oldTimeSignature))
+                    if (!_barMaster[masterBarIndex].time.Equals(oldTimeSignature))
                     {
                         //Add Time-Sig to midiHeader
-                        midiHeader.messages.Add(new MidiExport.MidiMessage("time_signature", new string[] { "" + barMaster[masterBarIndex].num, "" + barMaster[masterBarIndex].den, "24", "8" }, barMaster[masterBarIndex].index - currentIndex));
-                        currentIndex = barMaster[masterBarIndex].index;
+                        midiHeader.messages.Add(new MidiExport.MidiMessage("time_signature", new string[] { "" + _barMaster[masterBarIndex].num, "" + _barMaster[masterBarIndex].den, "24", "8" }, _barMaster[masterBarIndex].index - currentIndex));
+                        currentIndex = _barMaster[masterBarIndex].index;
 
-                        oldTimeSignature = barMaster[masterBarIndex].time;
+                        oldTimeSignature = _barMaster[masterBarIndex].time;
                     }
                      masterBarIndex++;
                 }
                 else //next tempo signature comes first
                 {
                     //Add Tempo-Sig to midiHeader
-                    int _tempo = (int)(Math.Round((60 * 1000000) / tempos[tempoIndex].value));
-                    midiHeader.messages.Add(new MidiExport.MidiMessage("set_tempo", new string[] { "" + _tempo }, tempos[tempoIndex].position - currentIndex));
-                    currentIndex = tempos[tempoIndex].position;
+                    int _tempo = (int)(Math.Round((60 * 1000000) / _tempos[tempoIndex].value));
+                    midiHeader.messages.Add(new MidiExport.MidiMessage("set_tempo", new string[] { "" + _tempo }, _tempos[tempoIndex].position - currentIndex));
+                    currentIndex = _tempos[tempoIndex].position;
                      tempoIndex++;
                 }
             }
@@ -108,27 +103,25 @@ namespace Native {
 
         public NativeFormat(GPFile fromFile)
         {
-            title = fromFile.title;
-            subtitle = fromFile.subtitle;
-            artist = fromFile.interpret;
-            album = fromFile.album;
-            words = fromFile.words;
-            music = fromFile.music;
-            tempos = retrieveTempos(fromFile);
-            directions = fromFile.directions;
-            barMaster = retrieveMasterBars(fromFile);
-            tracks = retrieveTracks(fromFile);
-            lyrics = fromFile.lyrics;
+            _title = fromFile.title;
+            _subtitle = fromFile.subtitle;
+            _artist = fromFile.interpret;
+            _album = fromFile.album;
+            _words = fromFile.words;
+            _music = fromFile.music;
+            _tempos = retrieveTempos(fromFile);
+            _barMaster = retrieveMasterBars(fromFile);
+            _tracks = retrieveTracks(fromFile);
             updateAvailableChannels();
         }
 
         private void updateAvailableChannels()
         {
-            
-            for (int x = 0; x < 16; x++) { if (x != 9) { availableChannels[x] = true; } else { availableChannels[x] = false; } }
-            foreach (Track track in tracks)
+
+            for (int x = 0; x < 16; x++) { if (x != 9) { AvailableChannels[x] = true; } else { AvailableChannels[x] = false; } }
+            foreach (Track track in _tracks)
             {
-                availableChannels[track.channel] = false;
+                AvailableChannels[track.channel] = false;
             }
         }
 
@@ -191,7 +184,7 @@ namespace Native {
             return ret;
         }
 
-       
+
 
         public List<Note> retrieveNotes(global::Track track, int[] tuning, Track myTrack)
         {
@@ -213,13 +206,13 @@ namespace Native {
             int notesInMeasure = 0;
             foreach (Measure m in track.measures)
             {
-               
+
                 notesInMeasure = 0;
                 measureIndex++;
                 bool skipVoice = false;
                 if (m.simileMark == SimileMark.simple) //Repeat last measure
                 {
-                    int amountNotes = notesInMeasures[notesInMeasures.Count-1]; //misuse prohibited by guitarpro
+                    int amountNotes = _notesInMeasures[_notesInMeasures.Count-1]; //misuse prohibited by guitarpro
                     int endPoint = notes.Count;
                     for (int x = endPoint - amountNotes; x < endPoint; x++)
                     {
@@ -233,8 +226,8 @@ namespace Native {
                 }
                 if (m.simileMark == SimileMark.firstOfDouble || m.simileMark == SimileMark.secondOfDouble) //Repeat first or second of last two measures
                 {
-                    int secondAmount = notesInMeasures[notesInMeasures.Count - 1]; //misuse prohibited by guitarpro
-                    int firstAmount = notesInMeasures[notesInMeasures.Count - 2];
+                    int secondAmount = _notesInMeasures[_notesInMeasures.Count - 1]; //misuse prohibited by guitarpro
+                    int firstAmount = _notesInMeasures[_notesInMeasures.Count - 2];
                     int endPoint = notes.Count-secondAmount;
                     for (int x = endPoint - firstAmount; x < endPoint; x++)
                     {
@@ -248,15 +241,15 @@ namespace Native {
                     }
                     skipVoice = true;
                 }
-               
+
                 foreach (Voice v in m.voices)
                 {
                     if (skipVoice) break;
                     int subIndex = 0;
                     foreach (Beat b in v.beats)
                     {
-                      
-                        if (b.text != null && !b.text.value.Equals("")) annotations.Add(new Annotation(b.text.value,index+subIndex));
+
+                        if (b.text != null && !b.text.value.Equals("")) _annotations.Add(new Annotation(b.text.value,index+subIndex));
 
                         if (b.effect.tremoloBar != null) addToTremoloBarList(index + subIndex, flipDuration(b.duration), b.effect.tremoloBar, myTrack);
 
@@ -277,8 +270,8 @@ namespace Native {
                                 temp.value = b.effect.stroke.value;
                                 int brushTotalDuration = flipDuration(temp);
                                 int beatTotalDuration = flipDuration(b.duration);
-                            
-                                
+
+
                                 brushIncrease = brushTotalDuration / (notesCnt);
                                 int startPos = index + subIndex + (int)((brushTotalDuration-brushIncrease) * (b.effect.stroke.startTime - 1));
                                 int endPos = startPos + brushTotalDuration - brushIncrease;
@@ -309,7 +302,7 @@ namespace Native {
                             note.isRHTapped = b.effect.slapEffect == SlapEffect.tapping;
                             note.index = index + subIndex;
                             note.duration = flipDuration(b.duration);
-                            
+
 
                             //Note values
                             note.fret = n.value;
@@ -319,7 +312,7 @@ namespace Native {
                             note.isPalmMuted = n.effect.palmMute;
                             note.isMuted = n.type == NoteType.dead;
 
-                            if (n.effect.harmonic != null) { 
+                            if (n.effect.harmonic != null) {
                                 note.harmonicFret = n.effect.harmonic.fret;
                                 if (n.effect.harmonic.fret == 0) //older format..
                                 {
@@ -338,7 +331,7 @@ namespace Native {
                                         break;
                                 }
                             }
-                            if (n.effect.slides != null) { 
+                            if (n.effect.slides != null) {
                                 foreach (SlideType sl in n.effect.slides)
                                 {
                                     note.slidesToNext = note.slidesToNext || sl == SlideType.shiftSlideTo || sl == SlideType.legatoSlideTo;
@@ -352,37 +345,37 @@ namespace Native {
                             if (n.effect.bend != null) note.bendPoints = getBendPoints(index + subIndex, flipDuration(b.duration), n.effect.bend);
 
                             //Ties
-                          
-                            bool dontAddNote = false; 
-                            
+
+                            bool dontAddNote = false;
+
                             if (n.type == NoteType.tie)
                             {
-                               
-                                   
+
+
                                     dontAddNote = true;
                                     //Find if note can simply be added to previous note
-                                
+
                                     var last = last_notes[Math.Max(0,note.str-1)];
-                             
-                               
-                                
+
+
+
                                     if (last != null) {
                                         note.fret = last.fret; //For GP3 & GP4
                                         if (last.harmonic != note.harmonic || last.harmonicFret != note.harmonicFret
                                             ) dontAddNote = false;
-                                
+
                                         if (dontAddNote)
                                         {
                                             note.connect = true;
                                             last.duration += note.duration;
                                             last.addBendPoints(note.bendPoints);
-                                    
+
                                         }
                                     }
-                                
+
                             } else // not a tie
                             {
-                                
+
                                 last_was_tie[Math.Max(0, note.str - 1)] = false;
                             }
 
@@ -390,9 +383,9 @@ namespace Native {
 
 
                             //Triplet Feel
-                            if (!barMaster[measureIndex].tripletFeel.Equals("none"))
+                            if (!_barMaster[measureIndex].tripletFeel.Equals("none"))
                             {
-                                TripletFeel trip = barMaster[measureIndex].tripletFeel;
+                                TripletFeel trip = _barMaster[measureIndex].tripletFeel;
                                 //Check if at regular 8th or 16th beat position
                                 bool is_8th_pos = subIndex % 480 == 0;
                                 bool is_16th_pos = subIndex % 240 == 0;
@@ -507,13 +500,13 @@ namespace Native {
                                     } else
                                     {
                                         graceNote.index -= graceNote.duration;
-                                        
+
                                     }
 
                                     notes.Add(graceNote); //TODO: insert at correct position!
                                     notesInMeasure++;
-         
-                                } else { 
+
+                                } else {
 
 
                                     if (isOnBeat) // shorten next note
@@ -523,10 +516,10 @@ namespace Native {
                                     } else //Change previous note
                                     {
                                         if ( notes.Count > 0)
-                                        {                                   
+                                        {
                                             note.index -= note.duration; //Can lead to negative indices. Midi should handle that
                                             subtractSubindex = note.duration;
-                                        
+
                                         }
                                     }
 
@@ -559,7 +552,7 @@ namespace Native {
                             }
                             if (n.effect.accentuatedNote) note.velocity = (int)(note.velocity * 1.2f);
                             if (n.effect.heavyAccentuatedNote) note.velocity = (int)(note.velocity * 1.4f);
-                            
+
                             //Arpeggio / Brush
                             if (hasBrush)
                             {
@@ -578,7 +571,7 @@ namespace Native {
 
                         }
                         if (rememberedGrace) { subIndex -= graceLength; rememberGrace = false; rememberedGrace = false; } //After the change in duration for the second beat has been done
-                         
+
                         subIndex -= subtractSubindex;
                         subtractSubindex = 0;
                         subIndex += flipDuration(b.duration);
@@ -596,7 +589,7 @@ namespace Native {
                             for (int x = notes.Count - notesCnt; x < notes.Count; x++)
                             {
                                 notes[x] = temp[temp.Length - (x - (notes.Count - notesCnt))-1];
-                                
+
                             }
 
 
@@ -606,17 +599,17 @@ namespace Native {
                     break; //Consider only the first voice
                 }
                 int measureDuration = flipDuration(m.header.timeSignature.denominator) * m.header.timeSignature.numerator;
-                barMaster[measureIndex].duration = measureDuration;
-                barMaster[measureIndex].index = index;
+                _barMaster[measureIndex].duration = measureDuration;
+                _barMaster[measureIndex].index = index;
                 index += measureDuration;
-                notesInMeasures.Add(notesInMeasure);
+                _notesInMeasures.Add(notesInMeasure);
             }
-            
+
 
             return notes;
         }
 
-       
+
 
         public int[] getTuning(List<GuitarString> strings)
         {
@@ -640,7 +633,7 @@ namespace Native {
                 mb.num = mh.timeSignature.numerator;
                 mb.den = mh.timeSignature.denominator.value;
                 string keyFull = ""+(int)mh.keySignature;
-                if (!(keyFull.Length == 1)) { 
+                if (!(keyFull.Length == 1)) {
                     mb.keyType = int.Parse(keyFull.Substring(keyFull.Length - 1));
                     mb.key = int.Parse(keyFull.Substring(0,keyFull.Length-1));
                 }
@@ -652,7 +645,7 @@ namespace Native {
                 mb.keyBoth = keyFull; //Useful for midiExport later
 
                 mb.tripletFeel = mh.tripletFeel;
-                
+
                 masterBars.Add(mb);
             }
 
@@ -663,8 +656,8 @@ namespace Native {
         {
             List<Tempo> tempos = new List<Tempo>();
             //Version < 4 -> look at Measure Headers, >= 4 look at mixtablechanges
-           
-           
+
+
             int version = file.versionTuple[0];
             if (version < 4) //Look at MeasureHeaders
             {
@@ -677,7 +670,7 @@ namespace Native {
                 int pos = 0;
                 float oldTempo = file.tempo;
                 foreach (MeasureHeader mh in file.measureHeaders)
-                {                  
+                {
                     Tempo t = new Tempo();
                     t.value = mh.tempo.value;
                     t.position = pos;
@@ -697,7 +690,7 @@ namespace Native {
                 if (init.value != 0) tempos.Add(init);
                 foreach (Measure m in file.tracks[0].measures)
                 {
-                    int smallPos = 0; //inner measure position 
+                    int smallPos = 0; //inner measure position
                     if (m.voices.Count == 0) continue;
 
                     foreach (Beat b in m.voices[0].beats){
@@ -747,7 +740,7 @@ namespace Native {
 
             int enters = d.tuplet.enters;
             int times = d.tuplet.times;
-            
+
             //3:2 = standard triplet, 3 notes in the time of 2
             result = (int)((result*times)/(float)enters);
 
@@ -861,6 +854,8 @@ namespace Native {
 
     public class Track
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         public string name = "";
         public int patch = 0;
         public int port = 0;
@@ -880,7 +875,7 @@ namespace Native {
             midiTrack.messages.Add(new MidiExport.MidiMessage("track_name", new string[] { name }, 0));
             midiTrack.messages.Add(new MidiExport.MidiMessage("program_change", new string[] { ""+channel,""+patch }, 0));
 
-           
+
             List<int[]> noteOffs = new List<int[]>();
             List<int[]> channelConnections = new List<int[]>(); //For bending and trembar: [original Channel, artificial Channel, index at when to delete artificial]
             List<BendingPlan> activeBendingPlans = new List<BendingPlan>();
@@ -898,7 +893,7 @@ namespace Native {
             {
                 noteOffs.Sort((x, y) => x[0].CompareTo(y[0]));
 
-                
+
 
                 //Check for active bendings in progress
                 List<BendPoint> currentBPs = findAndSortCurrentBendPoints(activeBendingPlans, n.index);
@@ -925,7 +920,7 @@ namespace Native {
 
                     //Check if there are active tremPoints to be adjusted for
                     List<TremoloPoint> _newTremPoints = new List<TremoloPoint>();
-                    
+
                     foreach (TremoloPoint tp in tremoloPoints)
                     {
                         if (tp.index <= bp.index) //between last and this note, a note off event should occur
@@ -994,7 +989,7 @@ namespace Native {
                         }
                         channelConnections = newChannelConnections;
 
-                        NativeFormat.availableChannels[bpl.usedChannel] = true;
+                        NativeFormat.AvailableChannels[bpl.usedChannel] = true;
                     }
                 }
 
@@ -1011,7 +1006,7 @@ namespace Native {
                     {
                         var value = tp.value * 25.6f;
                         value =Math.Min( Math.Max(value,-8192),8191);
-                        foreach (int ch in activeChannels) { 
+                        foreach (int ch in activeChannels) {
                             midiTrack.messages.Add(
                      new MidiExport.MidiMessage("pitchwheel",
                      new string[] { "" + ch, "" + (int)(value) }, tp.index - currentIndex));
@@ -1031,7 +1026,7 @@ namespace Native {
                 foreach (int[] vc in volumeChanges)
                 {
                     if (vc[0] <= n.index) //between last and this note, a volume change event should occur
-                    { 
+                    {
 
                         foreach (int ch in activeChannels)
                         {
@@ -1055,7 +1050,7 @@ namespace Native {
                     if (noteOff[0] <= n.index) //between last and this note, a note off event should occur
                     {
                         midiTrack.messages.Add(
-                            new MidiExport.MidiMessage("note_off", 
+                            new MidiExport.MidiMessage("note_off",
                             new string[] { "" + noteOff[2], "" + noteOff[1], "0" }, noteOff[0] - currentIndex));
                         currentIndex = noteOff[0];
                     } else
@@ -1069,9 +1064,9 @@ namespace Native {
                 int note;
 
                 if (n.str == -2) break; //Last round
-                
-                if (n.str-1 < 0) Debug.Log("String was -1");
-                if (n.str-1 >= tuning.Length && tuning.Length != 0) Debug.Log("String was higher than string amount (" + n.str + ")");
+
+                if (n.str - 1 < 0) Logger.Debug("String was -1");
+                if (n.str-1 >= tuning.Length && tuning.Length != 0) Logger.Debug("String was higher than string amount (" + n.str + ")");
                 if (tuning.Length > 0) note = tuning[n.str - 1] + capo + n.fret;
                 else
                 {
@@ -1089,7 +1084,7 @@ namespace Native {
                 {
                     int usedChannel = tryToFindChannel();
                     if (usedChannel == -1) usedChannel = channel;
-                    NativeFormat.availableChannels[usedChannel] = false;
+                    NativeFormat.AvailableChannels[usedChannel] = false;
                     channelConnections.Add(new int[] {channel,usedChannel,n.index + n.duration });
                     midiTrack.messages.Add(new MidiExport.MidiMessage("program_change", new string[] { ""+usedChannel, ""+patch}, n.index - currentIndex));
                     noteChannel = usedChannel;
@@ -1107,7 +1102,7 @@ namespace Native {
                 if (n.fading != Fading.none) //Fading
                 {
                     volumeChanges = createVolumeChanges(n.index, n.duration, n.velocity, n.fading);
-                } 
+                }
 
                 midiTrack.messages.Add(new MidiExport.MidiMessage("note_on", new string[] { "" + noteChannel, "" + note, "" + n.velocity }, n.index - currentIndex));
                 currentIndex = n.index;
@@ -1125,9 +1120,9 @@ namespace Native {
                 noteOffs.Add(new int[] {n.index + n.duration, note , noteChannel});
 
             }
-          
 
-            
+
+
 
             midiTrack.messages.Add(new MidiExport.MidiMessage("end_of_track", new string[] { }, 0));
             return midiTrack;
@@ -1141,7 +1136,7 @@ namespace Native {
             {
                 index++;
                 bool skipWrite = false;
-                
+
                 if ((n.slideInFromBelow && n.str > 1) || n.slideInFromAbove)
                 {
                     int myFret = n.fret;
@@ -1230,7 +1225,7 @@ namespace Native {
                     changes.Add(new int[] {x,Math.Min(127,Math.Max(0,val)) });
                     val += step;
                 }
-                
+
             }
 
             if (fading == Fading.volumeSwell)
@@ -1240,7 +1235,7 @@ namespace Native {
                 int times = 0;
                 for (int x = index; x < index + duration; x += (duration / segments))
                 {
-                    
+
                     changes.Add(new int[] { x, Math.Min(127, Math.Max(0, val)) });
                     val += step;
                     if (times == segments/2) step = -step;
@@ -1267,7 +1262,7 @@ namespace Native {
         public int tryToFindChannel()
         {
             int cnt = 0;
-            foreach (bool available in NativeFormat.availableChannels)
+            foreach (bool available in NativeFormat.AvailableChannels)
             {
                 if (available) return cnt;
                 cnt++;
@@ -1303,11 +1298,11 @@ namespace Native {
             if (harmonicFret == 19f) val += 0;
             if (harmonicFret == 21.7f) val += 12;
             if (harmonicFret == 24f) val += 0;
-            
+
             return Math.Min(val,127);
         }
 
-   
+
         public List<BendPoint> findAndSortCurrentBendPoints(List<BendingPlan> activeBendingPlans, int index)
         {
             List<BendPoint> bps = new List<BendPoint>();
@@ -1403,7 +1398,7 @@ namespace Native {
                 {
                     if (isVibrato) bp.value += vibrato;
                     bendingPoints.Add(bp);
-                    
+
                 }
                 old_pos = bp.index;
                 old_value = bp.value;
@@ -1434,13 +1429,13 @@ namespace Native {
             //this.positions = positions;
             this.originalChannel = originalChannel;
             this.usedChannel = usedChannel;
-            
+
         }
     }
 
     public class MasterBar
     {
-        
+
         public string time = "4/4";
         public int num = 4;
         public int den = 4;

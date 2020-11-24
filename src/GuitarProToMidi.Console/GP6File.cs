@@ -3,12 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 
 public class GP6File : GPFile
 {
 
-        
+
     private byte[] udata; //uncompressed data
     private static List<GP6Tempo> tempos = new List<GP6Tempo>();
     private static List<GP6Chord> chords = new List<GP6Chord>();
@@ -101,8 +100,8 @@ public class GP6File : GPFile
         //Page Layout
         Node nPageLayout = node.getSubnodeByName("Score", true).getSubnodeByName("PageSetup", true);
         file.pageSetup = new global::PageSetup();
-        if (nPageLayout != null) { 
-            
+        if (nPageLayout != null) {
+
             file.pageSetup.pageSize = new Point(int.Parse(nPageLayout.subnodes[0].content), int.Parse(nPageLayout.subnodes[1].content));
             file.pageSetup.pageMargin = new Padding(int.Parse(nPageLayout.subnodes[5].content),
                 int.Parse(nPageLayout.subnodes[3].content),
@@ -142,7 +141,7 @@ public class GP6File : GPFile
         int barCnt = -1;
         foreach (Node nBar in nBars.subnodes)
         {
-            
+
             var _bar = new Measure();
             string clef = nBar.getSubnodeByName("Clef").content;
             if (clef.Equals("G2")) _bar.clef = MeasureClef.treble;
@@ -169,7 +168,7 @@ public class GP6File : GPFile
                 if (nSimileMark.content.Equals("SecondOfDouble")) _bar.simileMark = SimileMark.secondOfDouble;
             }
             _bar.voices = new List<Voice>();
-            
+
             foreach (string voice in voices)
             {
                 if (int.Parse(voice) >= 0) _bar.voices.Add(transferVoice(node, int.Parse(voice), _bar));
@@ -177,7 +176,7 @@ public class GP6File : GPFile
             song.tracks[(cnt - 1) % song.trackCount].addMeasure(_bar);
         }
 
-        
+
     }
 
     private static int flipDuration(Duration d)
@@ -248,7 +247,7 @@ public class GP6File : GPFile
             {
                 if (tempo.bar == currentMeasure && tempo.transferred == false)
                 {
-                   
+
                     if ((float)lengthPassed / totalLength > tempo.position)
                     {
                         //Place tempo value
@@ -258,7 +257,7 @@ public class GP6File : GPFile
                         if (tempo.tempoType == 4) myTempo *= 2.0f;
                         if (tempo.tempoType == 5) myTempo *= 3.0f;
 
-                        
+
                         beat.effect.mixTableChange.tempo = new MixTableItem((int)myTempo, 0, true);
                         tempo.transferred = true;
                     }
@@ -306,7 +305,7 @@ public class GP6File : GPFile
         beat.effect.fadeIn = nBeat.getSubnodeByName("Fadding", true) != null && nBeat.getSubnodeByName("Fadding", true).content.Equals("FadeIn");
         beat.effect.fadeOut = nBeat.getSubnodeByName("Fadding", true) != null && nBeat.getSubnodeByName("Fadding", true).content.Equals("FadeOut");
         beat.effect.volumeSwell = nBeat.getSubnodeByName("Fadding", true) != null && nBeat.getSubnodeByName("Fadding", true).content.Equals("VolumeSwell");
-        
+
         if (nBeat.getSubnodeByName("FreeText",true) != null)
         {
             beat.text = new BeatText(nBeat.getSubnodeByName("FreeText", true).content);
@@ -357,7 +356,7 @@ public class GP6File : GPFile
                     beat.effect.stroke.direction = bsd;
                     searchBrushParams = true; //search in Xproperty
                 }
-                
+
                 else if (nProperty.propertyValues[0].Equals("PickStroke"))
                 {
                     string direction = nProperty.subnodes[0].content;
@@ -391,7 +390,7 @@ public class GP6File : GPFile
                 beat.effect.tremoloBar = new BendEffect();
                 beat.effect.tremoloBar.type = BendType.none; //Not defined in GP6
                 beat.effect.tremoloBar.points = new List<BendPoint>();
-                
+
                 beat.effect.tremoloBar.points.Add(new BendPoint(0.0f, whammyBarOriginValue));
                 beat.effect.tremoloBar.points.Add(new BendPoint(whammyBarOriginOffset, whammyBarOriginValue));
                 //Peak or Valley
@@ -407,7 +406,7 @@ public class GP6File : GPFile
 
         Node nWhammy = nBeat.getSubnodeByName("Whammy", true);
         if (nWhammy != null)
-        { 
+        {
             beat.effect.tremoloBar = new BendEffect();
             beat.effect.tremoloBar.type = BendType.none; //Not defined in GP6
             beat.effect.tremoloBar.points = new List<BendPoint>();
@@ -481,13 +480,13 @@ public class GP6File : GPFile
             bool tapping;
             beat.notes.Add(transferNote(node, int.Parse(note), beat,velocity, graceEffect, tremolo, out tapping));
             if (tapping) beat.effect.slapEffect = SlapEffect.tapping;
-            
+
         }
 
         return beat;
     }
 
-  
+
 
     public static Note transferNote(Node node, int index, Beat beat, int velocity, GraceEffect graceEffect, string tremolo, out bool tapping)
     {
@@ -573,7 +572,7 @@ public class GP6File : GPFile
                     if ((flags >> 5) % 2 == 1) note.effect.slides.Add(SlideType.intoFromAbove);
                     if ((flags >> 6) % 2 == 1) note.effect.slides.Add(SlideType.pickScrapeOutDownwards);
                     if ((flags >> 7) % 2 == 1) note.effect.slides.Add(SlideType.pickScrapeOutUpwards);
-                    
+
                 }
                 else if (nProperty.propertyValues[0].Equals("LeftHandTapped"))
                 {
@@ -587,7 +586,7 @@ public class GP6File : GPFile
                 {
                     tapping = true;
                 }
-                
+
             }
 
             if (hasBendEffect)
@@ -615,12 +614,12 @@ public class GP6File : GPFile
 
             if (harmonicFret != -1)
             {
-                
+
                 if (harmonicType.Equals("Natural") || harmonicType.Equals(""))
                 {
                     note.effect.harmonic = new NaturalHarmonic();  //Ignore the complicated GP3-5 settings
-                } else if (harmonicType.Equals("Artificial"))      //There should be during playback a function that reads only fret and type and creates the harmonic + for GP3-5 files that transfers the old format 
-                        note.effect.harmonic = new ArtificialHarmonic();                  
+                } else if (harmonicType.Equals("Artificial"))      //There should be during playback a function that reads only fret and type and creates the harmonic + for GP3-5 files that transfers the old format
+                        note.effect.harmonic = new ArtificialHarmonic();
                  else if (harmonicType.Equals("Pinch")) note.effect.harmonic = new PinchHarmonic();
                 else if (harmonicType.Equals("Tap")) note.effect.harmonic = new TappedHarmonic();
                 else if (harmonicType.Equals("Semi")) note.effect.harmonic = new SemiHarmonic();
@@ -635,7 +634,7 @@ public class GP6File : GPFile
                 int midiValue = getGP6DrumValue(element, variation);
                 note.value = midiValue;
                 note.str = 1;
-            } 
+            }
         }
 
 
@@ -658,7 +657,7 @@ public class GP6File : GPFile
             int secondNote = int.Parse(nTrill.content);
             note.effect.trill = new TrillEffect();
             note.effect.trill.fret = secondNote;
-            note.effect.trill.duration = new Duration(trillLength);       
+            note.effect.trill.duration = new Duration(trillLength);
         }
 
         Node nVibrato = nNote.getSubnodeByName("Vibrato");
@@ -685,7 +684,7 @@ public class GP6File : GPFile
         if (nNote.getSubnodeByName("Tie") != null && nNote.getSubnodeByName("Tie").propertyValues[1].Equals("true"))
             note.type = NoteType.tie;
 
-        if (!tremolo.Equals("")) { 
+        if (!tremolo.Equals("")) {
             note.effect.tremoloPicking = new TremoloPickingEffect();
             //1/2 = 8th, 1/4 = 16ths, 1/8 = 32nds
             note.effect.tremoloPicking.duration = new Duration();
@@ -794,7 +793,7 @@ public class GP6File : GPFile
 
         return ret_val;
     }
-    
+
     public static List<Track> transferTracks(Node nTracks, GP5File song)
     {
         List<Track> ret_val = new List<Track>();
@@ -830,7 +829,7 @@ public class GP6File : GPFile
 
             }
             _track.strings = new List<GuitarString>();
-        
+
             Node nProperties = nTrack.getSubnodeByName("Properties");
             if (nProperties != null)
             {
@@ -845,7 +844,7 @@ public class GP6File : GPFile
                     }
                 }
             }
-            if (nProperties != null) { 
+            if (nProperties != null) {
                 Node nCapoFret = nProperties.getSubnodeByProperty("name", "CapoFret");
                 Node nFretCount = nProperties.getSubnodeByProperty("name", "FretCount");
                 if (nCapoFret != null) _track.offset = int.Parse(nCapoFret.subnodes[0].content);
@@ -860,9 +859,9 @@ public class GP6File : GPFile
                 }
             }
             _track.isPercussionTrack = _track.channel.channel == 9;
-            
+
             _track.settings = new TrackSettings();
-            
+
             Node nPlaybackState = nTrack.getSubnodeByName("PlaybackState");
             if (nPlaybackState != null)
             {
@@ -877,7 +876,7 @@ public class GP6File : GPFile
 
         return ret_val;
     }
-    
+
         public static List<MeasureHeader> transferMeasureHeaders(Node nMasterBars, GP5File song)
     {
         var ret_val = new List<MeasureHeader>();
@@ -896,8 +895,8 @@ public class GP6File : GPFile
             _measureHeader.repeatClose = 0;
             if (nMasterBar.getSubnodeByName("Repeat", true) != null && nMasterBar.getSubnodeByName("Repeat", true).propertyValues[1].Equals("true"))
                 _measureHeader.repeatClose = int.Parse(nMasterBar.getSubnodeByName("Repeat", true).propertyValues[2]);
-                
-            if (nMasterBar.getSubnodeByName("AlternateEndings", true) != null) { 
+
+            if (nMasterBar.getSubnodeByName("AlternateEndings", true) != null) {
                 var _aes = nMasterBar.getSubnodeByName("AlternateEndings", true).content.Split(' ');
                 foreach (string _ in _aes)
                 {
@@ -911,7 +910,7 @@ public class GP6File : GPFile
             _measureHeader.timeSignature.denominator = new Duration();
             _measureHeader.timeSignature.denominator.value = int.Parse(timeSig[1]);
 
-            _measureHeader.tripletFeel = TripletFeel.none; 
+            _measureHeader.tripletFeel = TripletFeel.none;
             if (nMasterBar.getSubnodeByName("TripletFeel",true) != null)
             {
                 string feel = nMasterBar.getSubnodeByName("TripletFeel", true).content;
@@ -933,7 +932,7 @@ public class GP6File : GPFile
             //Do I really need these:
             //_measureHeader.marker ? repeatGroup ?
             //_measureHeader.start ? realStart ?
-            //_measureHeader.tempo - useless, as the real tempo is saved as MixTableChange on the BeatEffect  
+            //_measureHeader.tempo - useless, as the real tempo is saved as MixTableChange on the BeatEffect
 
             ret_val.Add(_measureHeader);
         }
@@ -943,7 +942,7 @@ public class GP6File : GPFile
 
     public static List<string> transferDirections(Node nDirections)
     {
-        
+
         List<string> ret_val = new List<string>();
         if (nDirections == null) return ret_val;
         foreach (Node nElement in nDirections.subnodes)
@@ -954,7 +953,7 @@ public class GP6File : GPFile
     }
     public static List<string> transferFromDirections(Node nDirections)
     {
-        
+
         List<string> ret_val = new List<string>();
         if (nDirections == null) return ret_val;
         foreach (Node nElement in nDirections.subnodes)
@@ -966,7 +965,7 @@ public class GP6File : GPFile
 
     public static List<Lyrics> transferLyrics(Node nTracks)
     {
-        
+
         List<Lyrics> ret_val = new List<Lyrics>();
         if (nTracks == null) return ret_val;
         foreach (Node nTrack in nTracks.subnodes)
@@ -993,7 +992,7 @@ public class GP6File : GPFile
             for (int x = 0; x < xml.Length-3; x++)
             {
                 string sub = xml.Substring(x, 3);
-                
+
                 if (sub.Equals("<!-")) { xml = xml.Substring(0, x) + '{' + xml.Substring(x + 1); continue; }
                 if (sub.Equals("<![")) { skipMode = true; continue; }
                 if (sub.Equals("]]>")) skipMode = false;
@@ -1149,7 +1148,7 @@ public class GP6Tempo
         public List<string> propertyValues = new List<string>();
         public string content;
 
-   
+
         public Node(List<Node> subnodes, List<string> propertyNames,
             List<string> propertyValues, string name = "", string content="")
         {
@@ -1183,7 +1182,7 @@ public class GP6Tempo
                     if (n.name.Equals(name)) return n;
                 }
                 return null;
-            } else { 
+            } else {
             foreach (Node n in subnodes)
                 {
                     Node sub = n.getSubnodeByName(name);
@@ -1486,7 +1485,7 @@ public class BitStream
         static private int[] powers = new int[] { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024 };
 
         public int GetBitsLE(int amount)
-        { //returns the number represented by the next n bits, starting with the least significant bit 
+        { //returns the number represented by the next n bits, starting with the least significant bit
             int ret_val = 0;
 
             for (int x = 0; x < amount; x++)
@@ -1498,7 +1497,7 @@ public class BitStream
         }
 
         public int GetBitsBE(int amount)
-        { //returns the number represented by the next n bits, starting with the most significant bit 
+        { //returns the number represented by the next n bits, starting with the most significant bit
             int ret_val = 0;
 
             for (int x = 0; x < amount; x++)

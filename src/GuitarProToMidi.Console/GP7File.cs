@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System.Collections.Generic;
 
 public class GP7File : GPFile {
 
@@ -21,6 +19,4 @@ public class GP7File : GPFile {
         self = gp5file;
         self.versionTuple = new int[] { 7, 0 };
     }
-    
-
 }
