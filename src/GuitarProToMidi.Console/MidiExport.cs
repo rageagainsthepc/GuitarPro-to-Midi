@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 
-namespace MidiExport { 
+namespace MidiExport {
     public class MidiExport
     {
         public static System.Text.Encoding ascii = System.Text.Encoding.ASCII;
@@ -133,7 +132,7 @@ namespace MidiExport {
                 {
                     List<byte> raw = new List<byte>();
                     raw = message.createBytes();
-                   
+
                     byte temp = raw[0];
                     if (statusByteSet && !message.is_meta && raw[0] < 0xf0 && raw[0] == runningStatusByte)
                     {
@@ -149,7 +148,7 @@ namespace MidiExport {
              }
 
             return MidiExport.writeChunk("MTrk",data);
-        } 
+        }
     }
 
     public class MidiMessage
@@ -240,7 +239,7 @@ namespace MidiExport {
             {
                 is_meta = true; code = 0x58;
                 numerator = int.Parse(args[0]);  //4
-                denominator = int.Parse(args[1]); //4 
+                denominator = int.Parse(args[1]); //4
                 clocks_per_click = int.Parse(args[2]); //24
                 notated_32nd_notes_per_beat = int.Parse(args[3]); //8
             }
@@ -327,14 +326,14 @@ namespace MidiExport {
             data.InsertRange(0, MidiExport.encodeVariableInt(dataLength));
             data.Insert(0, code);
             data.Insert(0, 0xff);
-            
+
             return data;
         }
 
 
         public List<byte> createMessageBytes()
         {
-           
+
             List<byte> data = new List<byte>();
             /* if (type.Equals("note_off")) { code = 0x80; channel = int.Parse(args[0]); note = int.Parse(args[1]); velocity = int.Parse(args[2]); }
             if (type.Equals("note_on")) { code = 0x90; channel = int.Parse(args[0]); note = int.Parse(args[1]); velocity = int.Parse(args[2]); }
@@ -344,15 +343,15 @@ namespace MidiExport {
             if (type.Equals("aftertouch")) { code = 0xd0; channel = int.Parse(args[0]); value = int.Parse(args[1]); }
             if (type.Equals("pitchwheel")) { code = 0xe0; channel = int.Parse(args[0]); pitch = int.Parse(args[1]); }
             if (type.Equals("sysex")) { code = 0xf0; this.data = data; }
-              
+
              */
             if (type.Equals("note_off") || type.Equals("note_on"))
             {
                 data.Add((byte)(code | (byte)channel));
                 data.Add((byte)note); data.Add((byte)velocity);
             }
-           
-            if (type.Equals("polytouch")) 
+
+            if (type.Equals("polytouch"))
             {
                 data.Add((byte)(code | (byte)channel));
                 data.Add((byte)note); data.Add((byte)value);
