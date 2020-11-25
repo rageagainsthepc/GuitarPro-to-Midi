@@ -5,9 +5,6 @@ on:
     branches:
       - master
   pull_request:
-  release:
-    types:
-      - created
 
 jobs:
   build:
@@ -33,69 +30,3 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build
-
-  build-release:
-    if: github.event_name == 'release'
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        include:
-          - os: ubuntu-latest
-            dotnet-platform: linux-x64
-          - os: windows-latest
-            dotnet-platform: win-x64
-          - os: macos-latest
-            dotnet-platform: osx-x64
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '5.0.x'
-    - name: Build self-contained binary
-      run: dotnet publish -r ${{ matrix.dotnet-platform }} -p:PublishSingleFile=true,IncludeNativeLibrariesForSelfExtract=true --self-contained true
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: artifact_${{ matrix.dotnet-platform }}
-        path: |
-          ./**/${{ matrix.dotnet-platform }}/publish/*
-          !./**/*.pdb
-        if-no-files-found: error
-
-
-  publish-release:
-    needs: build-release
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-platform: [linux-x64, win-x64, osx-x64]
-
-    steps:
-      - name: Download Artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: artifact_${{ matrix.dotnet-platform }}
-          path: artifact
-      - name: Get release
-        id: get_release
-        uses: bruceadams/get-release@v1.2.2
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-      - name: Find artifact
-        id: find_artifact
-        run: echo "::set-output name=artifact_path::$(find artifact -type f)"
-      - name: Create zip archive
-        run: zip -j guitarprotomidi_${{ matrix.dotnet-platform }}.zip ${{ steps.find_artifact.outputs.artifact_path }}
-      - name: Upload release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: guitarprotomidi_${{ matrix.dotnet-platform }}.zip
-          asset_name: guitarprotomidi_${{ matrix.dotnet-platform }}.zip
-          asset_content_type: application/zip
