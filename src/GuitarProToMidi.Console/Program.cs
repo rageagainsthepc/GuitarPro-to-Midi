@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Reflection;
 using Microsoft.Extensions.CommandLineUtils;
 using NLog;
@@ -7,7 +8,7 @@ using NLog.Targets;
 
 namespace GuitarProToMidi
 {
-    class Program
+    internal static class Program
     {
         public static int Main(string[] args)
         {
@@ -37,7 +38,12 @@ namespace GuitarProToMidi
                 ConfigureLogging(verbose.HasValue() ? LogLevel.Debug : LogLevel.Info);
 
                 var gpFile = new GpFileParser(inputFile.Value);
-                gpFile.CreateMidiFile(outputFile.Value(), force.HasValue());
+                var midiBytes = gpFile.CreateMidiFile();
+                using var fs = new FileStream(
+                    outputFile.Value() ?? Path.Join(Path.GetDirectoryName(inputFile.Value),
+                        $"{Path.GetFileNameWithoutExtension(inputFile.Value)}.mid"),
+                    force.HasValue() ? FileMode.Create : FileMode.CreateNew, FileAccess.Write);
+                fs.Write(midiBytes, 0, midiBytes.Length);
 
                 return 0;
             });
