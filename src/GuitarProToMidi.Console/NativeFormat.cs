@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NLog;
 
 namespace GuitarProToMidi {
@@ -24,7 +25,7 @@ namespace GuitarProToMidi {
             mid.midiTracks.Add(getMidiHeader()); //First, untitled track
             foreach (Track track in _tracks)
             {
-                mid.midiTracks.Add(track.getMidi());
+                mid.midiTracks.Add(track.GetMidi());
             }
             return mid;
         }
@@ -868,28 +869,29 @@ namespace GuitarProToMidi {
         private List<int[]> volumeChanges = new List<int[]>();
 
 
-        public MidiExport.MidiTrack getMidi()
+        public MidiExport.MidiTrack GetMidi()
         {
             var midiTrack = new MidiExport.MidiTrack();
-            midiTrack.messages.Add(new MidiExport.MidiMessage("midi_port", new string[] { ""+port }, 0));
-            midiTrack.messages.Add(new MidiExport.MidiMessage("track_name", new string[] { name }, 0));
-            midiTrack.messages.Add(new MidiExport.MidiMessage("program_change", new string[] { ""+channel,""+patch }, 0));
+            midiTrack.messages.Add(new MidiExport.MidiMessage("midi_port", new[] {port.ToString()}, 0));
+            midiTrack.messages.Add(new MidiExport.MidiMessage("track_name", new[] {name}, 0));
+            midiTrack.messages.Add(new MidiExport.MidiMessage("program_change",
+                new[] {channel.ToString(), patch.ToString()}, 0));
+            if (!notes.Any())
+            {
+                return midiTrack;
+            }
 
+            var noteOffs = new List<int[]>();
+            var channelConnections = new List<int[]>(); //For bending and trembar: [original Channel, artificial Channel, index at when to delete artificial]
+            var activeBendingPlans = new List<BendingPlan>();
+            var currentIndex = 0;
 
-            List<int[]> noteOffs = new List<int[]>();
-            List<int[]> channelConnections = new List<int[]>(); //For bending and trembar: [original Channel, artificial Channel, index at when to delete artificial]
-            List<BendingPlan> activeBendingPlans = new List<BendingPlan>();
-            int currentIndex = 0;
-            Note _temp = new Note();
-            _temp.index = notes[notes.Count - 1].index + notes[notes.Count - 1].duration;
-            _temp.str = -2;
-            notes.Add(_temp);
-
+            notes.Add(new Note {index = notes[^1].index + notes[^1].duration, str = -2});
             tremoloPoints = addDetailsToTremoloPoints(tremoloPoints, 60);
 
             //var _notes = addSlidesToNotes(notes); //Adding slide notes here, as they should not appear as extra notes during playback
 
-            foreach (Note n in notes)
+            foreach (var n in notes)
             {
                 noteOffs.Sort((x, y) => x[0].CompareTo(y[0]));
 
