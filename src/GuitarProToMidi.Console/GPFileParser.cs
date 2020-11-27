@@ -7,52 +7,41 @@ namespace GuitarProToMidi
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private readonly string _title;
         private readonly string _filePath;
         private readonly string _extension;
         private GPFile _gpfile;
 
         public GpFileParser(string filePath)
         {
-            _title = Path.GetFileNameWithoutExtension(filePath);
             _filePath = filePath;
             _extension = Path.GetExtension(filePath);
         }
 
-        public void CreateMidiFile(string outputPath, bool overwrite)
+        public byte[] CreateMidiFile()
         {
             var loader = File.ReadAllBytes(_filePath);
-            //Detect Version by Filename
-            var version = 7;
-            var fileEnding = _extension;
-            if (fileEnding.Equals(".gp3")) version = 3;
-            if (fileEnding.Equals(".gp4")) version = 4;
-            if (fileEnding.Equals(".gp5")) version = 5;
-            if (fileEnding.Equals(".gpx")) version = 6;
-            if (fileEnding.Equals(".gp")) version = 7;
 
-            switch (version)
+            switch (_extension)
             {
-                case 3:
+                case ".gp3":
                     _gpfile = new GP3File(loader);
                     _gpfile.readSong();
                     break;
-                case 4:
+                case ".gp4":
                     _gpfile = new GP4File(loader);
                     _gpfile.readSong();
                     break;
-                case 5:
+                case ".gp5":
                     _gpfile = new GP5File(loader);
                     _gpfile.readSong();
                     break;
-                case 6:
+                case ".gpx":
                     _gpfile = new GP6File(loader);
                     _gpfile.readSong();
                     _gpfile = _gpfile.self; //Replace with transferred GP5 file
                     break;
-                case 7:
-                    var buffer = new byte[8200000];
-                    var stream = new MemoryStream(buffer);
+                case ".gp":
+                    var stream = new MemoryStream();
                     using (var unzip = new Unzip(_filePath))
                     {
                         unzip.Extract("Content/score.gpif", stream);
@@ -74,12 +63,7 @@ namespace GuitarProToMidi
             Logger.Debug("Done");
 
             var song = new NativeFormat(_gpfile);
-            var midi = song.toMidi();
-            var data = midi.createBytes();
-            var dataArray = data.ToArray();
-            using var fs = new FileStream(outputPath ?? Path.Join(Path.GetDirectoryName(_filePath), $"{_title}.mid"),
-                overwrite ? FileMode.Create : FileMode.CreateNew, FileAccess.Write);
-            fs.Write(dataArray, 0, dataArray.Length);
+            return song.toMidi().createBytes().ToArray();
         }
     }
 }

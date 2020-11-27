@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F27A2087-5E5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuitarProToMidi", "src\GuitarProToMidi.Console\GuitarProToMidi.csproj", "{CBC4E1FC-BCD4-41D4-B3CB-38B8EF75C34C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuitarProToMidi_UnitTests", "tests\GuitarProToMidi_UnitTests\GuitarProToMidi_UnitTests.csproj", "{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CC954002-8DC4-43EC-9438-DE81DA9CB5BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,8 +36,21 @@ Global
 		{CBC4E1FC-BCD4-41D4-B3CB-38B8EF75C34C}.Release|x64.Build.0 = Release|Any CPU
 		{CBC4E1FC-BCD4-41D4-B3CB-38B8EF75C34C}.Release|x86.ActiveCfg = Release|Any CPU
 		{CBC4E1FC-BCD4-41D4-B3CB-38B8EF75C34C}.Release|x86.Build.0 = Release|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Debug|x64.Build.0 = Debug|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Debug|x86.Build.0 = Debug|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Release|x64.ActiveCfg = Release|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Release|x64.Build.0 = Release|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Release|x86.ActiveCfg = Release|Any CPU
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CBC4E1FC-BCD4-41D4-B3CB-38B8EF75C34C} = {F27A2087-5E55-4AE6-AC9E-D3A1703E5FF3}
+		{1BF93F48-8E30-4BA6-9BC3-58CD16D0C1EB} = {CC954002-8DC4-43EC-9438-DE81DA9CB5BC}
 	EndGlobalSection
 EndGlobal
