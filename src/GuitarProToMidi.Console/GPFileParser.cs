@@ -62,8 +62,8 @@ namespace GuitarProToMidi
 
             Logger.Debug("Done");
 
-            var song = new NativeFormat(_gpfile);
-            return song.toMidi().createBytes().ToArray();
+            var song = new Native.Format(_gpfile);
+            return song.ToMidi().createBytes().ToArray();
         }
     }
 }
