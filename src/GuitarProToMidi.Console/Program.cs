@@ -59,6 +59,10 @@ namespace GuitarProToMidi
             catch (Exception e)
             {
                 Console.Error.WriteLine($"Error: {e.Message}");
+                if (verbose.HasValue())
+                {
+                    Console.Error.WriteLine(Environment.StackTrace);
+                }
             }
 
             return 1;
