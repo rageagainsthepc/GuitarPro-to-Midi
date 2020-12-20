@@ -273,14 +273,14 @@ namespace GuitarProToMidi.Native
                         new[] {"" + usedChannel, "" + Patch}, n.Index - currentIndex));
                     noteChannel = usedChannel;
                     currentIndex = n.Index;
-                    activeBendingPlans.Add(CreateBendingPlan(n.BendPoints, Channel, usedChannel, n.Duration, n.Index,
+                    activeBendingPlans.Add(BendingPlan.create(n.BendPoints, Channel, usedChannel, n.Duration, n.Index,
                         n.ResizeValue, n.IsVibrato));
                 }
 
                 if (n.IsVibrato && n.BendPoints.Count == 0) //Is Vibrato & No Bending
                 {
                     var usedChannel = Channel;
-                    activeBendingPlans.Add(CreateBendingPlan(n.BendPoints, Channel, usedChannel, n.Duration, n.Index,
+                    activeBendingPlans.Add(BendingPlan.create(n.BendPoints, Channel, usedChannel, n.Duration, n.Index,
                         n.ResizeValue, true));
                 }
 
@@ -525,8 +525,7 @@ namespace GuitarProToMidi.Native
             {
                 foreach (var bendPoint in bendingPlan.BendingPoints.Where(bp => bp.Index <= index))
                 {
-                    bendPoint.UsedChannel = bendingPlan.UsedChannel;
-                    bendPoints.Add(bendPoint);
+                    bendPoints.Add(bendPoint with {UsedChannel = bendingPlan.UsedChannel});
                 }
             }
 
@@ -550,7 +549,7 @@ namespace GuitarProToMidi.Native
                     {
                         var value = oldValue + (tp.Value - oldValue) *
                             (((float) x - oldIndex) / ((float) tp.Index - oldIndex));
-                        tremPoints.Add(new TremoloPoint(value, x));
+                        tremPoints.Add(new TremoloPoint(x, value));
                     }
                 }
 
@@ -562,98 +561,6 @@ namespace GuitarProToMidi.Native
 
 
             return tremPoints;
-        }
-
-        private static BendingPlan CreateBendingPlan(ICollection<BendPoint> bendPoints, int originalChannel,
-            int usedChannel,
-            int duration, int index, float resize, bool isVibrato)
-        {
-            var maxDistance = duration / 10; //After this there should be a pitchwheel event
-            if (isVibrato)
-            {
-                maxDistance = Math.Min(maxDistance, 60);
-            }
-
-            if (bendPoints.Count == 0)
-            {
-                //Create Vibrato Plan
-                bendPoints.Add(new BendPoint(0.0f, index));
-                bendPoints.Add(new BendPoint(0.0f, index + duration));
-            }
-
-            var bendingPoints = new List<BendPoint>();
-
-
-            //Resize the points according to (changed) note duration
-            foreach (var bp in bendPoints)
-            {
-                bp.Index = (int) (index + (bp.Index - index) * resize);
-                bp.UsedChannel = usedChannel;
-            }
-
-            var oldPos = index;
-            var oldValue = 0.0f;
-            var start = true;
-            var vibratoSize = 0;
-            var vibratoChange = 0;
-            if (isVibrato)
-            {
-                vibratoSize = 12;
-                vibratoChange = 6;
-            }
-
-            var vibrato = 0;
-            foreach (var bp in bendPoints)
-            {
-                if (bp.Index - oldPos > maxDistance)
-                    //Add in-between points
-                {
-                    for (var x = oldPos + maxDistance; x < bp.Index; x += maxDistance)
-                    {
-                        var value = oldValue + (bp.Value - oldValue) *
-                            (((float) x - oldPos) / ((float) bp.Index - oldPos));
-                        bendingPoints.Add(new BendPoint(value + vibrato, x));
-                        if (isVibrato && Math.Abs(vibrato) == vibratoSize)
-                        {
-                            vibratoChange = -vibratoChange;
-                        }
-
-                        vibrato += vibratoChange;
-                    }
-                }
-
-                if (start || bp.Index != oldPos)
-                {
-                    if (isVibrato)
-                    {
-                        bp.Value += vibrato;
-                    }
-
-                    bendingPoints.Add(bp);
-                }
-
-                oldPos = bp.Index;
-                oldValue = bp.Value;
-                if ((start || bp.Index != oldPos) && isVibrato)
-                {
-                    oldValue -= vibrato; //Add back, so not to be influenced by it
-                }
-
-                start = false;
-                if (isVibrato && Math.Abs(vibrato) == vibratoSize)
-                {
-                    vibratoChange = -vibratoChange;
-                }
-
-                vibrato += vibratoChange;
-            }
-
-            if (Math.Abs(index + duration - oldPos) > maxDistance)
-            {
-                bendingPoints.Add(new BendPoint(oldValue, index + duration));
-            }
-
-            return new BendingPlan(originalChannel, usedChannel, bendingPoints);
         }
     }
 }

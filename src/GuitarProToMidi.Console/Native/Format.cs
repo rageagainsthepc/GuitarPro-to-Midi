@@ -184,16 +184,15 @@ namespace GuitarProToMidi.Native
 
         private static void AddToTremoloBarList(int index, int duration, BendEffect bend, Track myTrack)
         {
-            myTrack.TremoloPoints.Add(new TremoloPoint(0.0f,
-                index)); //So that it can later be recognized as the beginning
+            myTrack.TremoloPoints.Add(new TremoloPoint(index, 0.0f)); //So that it can later be recognized as the beginning
             foreach (var bp in bend.points)
             {
                 var at = index + (int) (bp.GP6position * duration / 100.0f);
-                var point = new TremoloPoint {Index = at, Value = bp.GP6value};
+                var point = new TremoloPoint(at, bp.GP6value);
                 myTrack.TremoloPoints.Add(point);
             }
 
-            var tp = new TremoloPoint {Index = index + duration, Value = 0};
+            var tp = new TremoloPoint(index + duration, 0);
             myTrack.TremoloPoints
                 .Add(tp); //Back to 0 -> Worst case there will be on the same index the final of tone 1, 0, and the beginning of tone 2.
         }
@@ -204,7 +203,7 @@ namespace GuitarProToMidi.Native
             foreach (var bp in bend.points)
             {
                 var at = index + (int) (bp.GP6position * duration / 100.0f);
-                var point = new BendPoint {Index = at, Value = bp.GP6value};
+                var point = new BendPoint(at, bp.GP6value);
                 ret.Add(point);
             }
 
