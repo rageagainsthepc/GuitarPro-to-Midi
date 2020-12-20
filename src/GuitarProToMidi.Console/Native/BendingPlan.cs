@@ -1,18 +1,30 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GuitarProToMidi.Native
 {
-    public class BendingPlan
+    public record BendingPlan(int OriginalChannel, int UsedChannel, ICollection<BendPoint> BendingPoints)
     {
-        public List<BendPoint> BendingPoints { get; }
-        public int OriginalChannel { get; }
-        public int UsedChannel { get; }
-
-        public BendingPlan(int originalChannel, int usedChannel, List<BendPoint> bendingPoints)
+        public virtual bool Equals(BendingPlan other)
         {
-            BendingPoints = bendingPoints;
-            OriginalChannel = originalChannel;
-            UsedChannel = usedChannel;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return OriginalChannel == other.OriginalChannel && UsedChannel == other.UsedChannel &&
+                   BendingPoints.SequenceEqual(other.BendingPoints);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(OriginalChannel, UsedChannel, BendingPoints);
         }
     }
 }

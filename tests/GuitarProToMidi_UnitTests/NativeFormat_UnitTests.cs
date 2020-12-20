@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using GuitarProToMidi;
+using GuitarProToMidi.Native;
 using Xunit;
 
 namespace GuitarProToMidi_UnitTests
@@ -10,11 +10,10 @@ namespace GuitarProToMidi_UnitTests
     {
         [Theory]
         [ClassData(typeof(CreateBendingPlanTestCollection))]
-        public void CreateBendingPlan_bla_bla(CreateBendingPlanCompositeTestData compositeTestData)
+        public void CreateBendingPlan_validInput_correctBendingPlan(
+            CreateBendingPlanCompositeTestData compositeTestData)
         {
-            var track = new GuitarProToMidi.Track();
-
-            var actualBendingPlan = track.createBendingPlan(
+            var actualBendingPlan = GuitarProToMidi.Native.Track.createBendingPlan(
                 compositeTestData.InputBendPoints.ToList(),
                 compositeTestData.OriginalChannel,
                 compositeTestData.UsedChannel,
@@ -23,16 +22,14 @@ namespace GuitarProToMidi_UnitTests
                 compositeTestData.Resize,
                 compositeTestData.IsVibrato);
 
-            // First assert is a subset of second one but provides better output for comparing bend points
-            Assert.Equal(compositeTestData.ExpectedBendPoints, actualBendingPlan.bendingPoints);
             Assert.Equal(
                 new BendingPlan(compositeTestData.OriginalChannel, compositeTestData.UsedChannel,
                     compositeTestData.ExpectedBendPoints.ToList()), actualBendingPlan);
         }
 
         public record CreateBendingPlanCompositeTestData(
-            ImmutableList<GuitarProToMidi.BendPoint> InputBendPoints,
-            ImmutableList<GuitarProToMidi.BendPoint> ExpectedBendPoints,
+            ImmutableList<GuitarProToMidi.Native.BendPoint> InputBendPoints,
+            ImmutableList<GuitarProToMidi.Native.BendPoint> ExpectedBendPoints,
             int OriginalChannel,
             int UsedChannel,
             int Duration,
@@ -42,9 +39,9 @@ namespace GuitarProToMidi_UnitTests
 
         public class CreateBendingPlanTestCollection : TheoryData<CreateBendingPlanCompositeTestData>
         {
-            private CreateBendingPlanCompositeTestData _defaultTestData = new(
-                ImmutableList<GuitarProToMidi.BendPoint>.Empty.Add(new()),
-                ImmutableList<GuitarProToMidi.BendPoint>.Empty.Add(new()),
+            private readonly CreateBendingPlanCompositeTestData _defaultTestData = new(
+                ImmutableList<GuitarProToMidi.Native.BendPoint>.Empty.Add(new(0, 0.0f, 0)),
+                ImmutableList<GuitarProToMidi.Native.BendPoint>.Empty.Add(new(0, 0.0f, 0)),
                 0,
                 0,
                 0,
@@ -57,55 +54,55 @@ namespace GuitarProToMidi_UnitTests
                 Add(_defaultTestData);
                 Add(_defaultTestData with
                 {
-                    InputBendPoints = _defaultTestData.InputBendPoints.Add(new(0.5f, 5)),
+                    InputBendPoints = _defaultTestData.InputBendPoints.Add(new(5, 0.5f, _defaultTestData.UsedChannel)),
                     ExpectedBendPoints = _defaultTestData.ExpectedBendPoints.AddRange(
-                        new List<GuitarProToMidi.BendPoint>
+                        new List<GuitarProToMidi.Native.BendPoint>
                         {
-                            new(0.1f, 1),
-                            new(0.2f, 2),
-                            new(0.3f, 3),
-                            new(0.4f, 4),
-                            new(0.5f, 5),
-                            new(0.5f, 10)
+                            new(1, 0.1f, _defaultTestData.UsedChannel),
+                            new(2, 0.2f, _defaultTestData.UsedChannel),
+                            new(3, 0.3f, _defaultTestData.UsedChannel),
+                            new(4, 0.4f, _defaultTestData.UsedChannel),
+                            new(5, 0.5f, _defaultTestData.UsedChannel),
+                            new(10, 0.5f, _defaultTestData.UsedChannel)
                         }),
                     Duration = 10
                 });
                 Add(_defaultTestData with
                 {
-                    InputBendPoints = _defaultTestData.InputBendPoints.Add(new(1.0f, 10)),
+                    InputBendPoints = _defaultTestData.InputBendPoints.Add(new(10, 1.0f, _defaultTestData.UsedChannel)),
                     ExpectedBendPoints = _defaultTestData.ExpectedBendPoints.AddRange(
-                        new List<GuitarProToMidi.BendPoint>
+                        new List<GuitarProToMidi.Native.BendPoint>
                         {
-                            new(0.1f, 1),
-                            new(0.2f, 2),
-                            new(0.3f, 3),
-                            new(0.4f, 4),
-                            new(0.5f, 5),
-                            new(0.6f, 6),
-                            new(0.7f, 7),
-                            new(0.8f, 8),
-                            new(0.9f, 9),
-                            new(1.0f, 10)
+                            new(1, 0.1f, _defaultTestData.UsedChannel),
+                            new(2, 0.2f, _defaultTestData.UsedChannel),
+                            new(3, 0.3f, _defaultTestData.UsedChannel),
+                            new(4, 0.4f, _defaultTestData.UsedChannel),
+                            new(5, 0.5f, _defaultTestData.UsedChannel),
+                            new(6, 0.6f, _defaultTestData.UsedChannel),
+                            new(7, 0.7f, _defaultTestData.UsedChannel),
+                            new(8, 0.8f, _defaultTestData.UsedChannel),
+                            new(9, 0.9f, _defaultTestData.UsedChannel),
+                            new(10, 1.0f, _defaultTestData.UsedChannel)
                         }
                     ),
                     Duration = 10,
                 });
                 Add(_defaultTestData with
                 {
-                    InputBendPoints = ImmutableList<GuitarProToMidi.BendPoint>.Empty,
+                    InputBendPoints = ImmutableList<GuitarProToMidi.Native.BendPoint>.Empty,
                     ExpectedBendPoints = _defaultTestData.ExpectedBendPoints.AddRange(
-                        new List<GuitarProToMidi.BendPoint>
+                        new List<GuitarProToMidi.Native.BendPoint>
                         {
-                            new(6.0f, 1),
-                            new(12.0f, 2),
-                            new(6.0f, 3),
-                            new(0.0f, 4),
-                            new(-6.0f, 5),
-                            new(-12.0f, 6),
-                            new(-6.0f, 7),
-                            new(0.0f, 8),
-                            new(6.0f, 9),
-                            new(12.0f, 10)
+                            new(1, 6.0f, _defaultTestData.UsedChannel),
+                            new(2, 12.0f, _defaultTestData.UsedChannel),
+                            new(3, 6.0f, _defaultTestData.UsedChannel),
+                            new(4, 0.0f, _defaultTestData.UsedChannel),
+                            new(5, -6.0f, _defaultTestData.UsedChannel),
+                            new(6, -12.0f, _defaultTestData.UsedChannel),
+                            new(7, -6.0f, _defaultTestData.UsedChannel),
+                            new(8, 0.0f, _defaultTestData.UsedChannel),
+                            new(9, 6.0f, _defaultTestData.UsedChannel),
+                            new(10, 12.0f, _defaultTestData.UsedChannel)
                         }
                     ),
                     Duration = 10,
@@ -114,14 +111,19 @@ namespace GuitarProToMidi_UnitTests
                 Add(_defaultTestData with
                 {
                     InputBendPoints =
-                    ImmutableList<GuitarProToMidi.BendPoint>.Empty.Add(new(0.0f, 1)).Add(new(0.2f, 2)),
-                    ExpectedBendPoints = ImmutableList<GuitarProToMidi.BendPoint>.Empty.AddRange(
-                        new List<GuitarProToMidi.BendPoint>
+                    ImmutableList<GuitarProToMidi.Native.BendPoint>.Empty.AddRange(
+                        new List<GuitarProToMidi.Native.BendPoint>
                         {
-                            new(0.0f, 1),
-                            new(0.1f, 2),
-                            new(0.2f, 3),
-                            new(0.2f, 11)
+                            new(1, 0.0f, _defaultTestData.UsedChannel),
+                            new(2, 0.2f, _defaultTestData.UsedChannel)
+                        }),
+                    ExpectedBendPoints = ImmutableList<GuitarProToMidi.Native.BendPoint>.Empty.AddRange(
+                        new List<GuitarProToMidi.Native.BendPoint>
+                        {
+                            new(1, 0.0f, _defaultTestData.UsedChannel),
+                            new(2, 0.1f, _defaultTestData.UsedChannel),
+                            new(3, 0.2f, _defaultTestData.UsedChannel),
+                            new(11, 0.2f, _defaultTestData.UsedChannel)
                         }),
                     Duration = 10,
                     Index = 1,
