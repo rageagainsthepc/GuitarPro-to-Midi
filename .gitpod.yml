@@ -1,0 +1,9 @@
+image: gitpod/workspace-dotnet
+
+tasks:
+  - init: dotnet restore
+
+vscode:
+  extensions:
+    - eamodio.gitlens
+    - muhammad-sammy.csharp
