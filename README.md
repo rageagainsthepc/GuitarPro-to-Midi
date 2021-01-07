@@ -1,3 +1,5 @@
+[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/rageagainsthepc/GuitarPro-to-Midi)
+
 # GuitarPro-to-Midi
 
 GuitarPro-to-Midi is a cross-platform command line application for converting GuitarPro files to MIDI files.

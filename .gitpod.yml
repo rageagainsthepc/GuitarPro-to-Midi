@@ -1,0 +1,17 @@
+image: gitpod/workspace-dotnet
+
+tasks:
+  - init: dotnet restore
+
+vscode:
+  extensions:
+    - editorconfig.editorconfig
+    - eamodio.gitlens
+    - muhammad-sammy.csharp
+    - patcx.vscode-nuget-gallery
+
+github:
+  prebuilds:
+    branches: true
+    addCheck: false
+    addBadge: true
