@@ -61,7 +61,7 @@ namespace GuitarProToMidi
                 Console.Error.WriteLine($"Error: {e.Message}");
                 if (verbose.HasValue())
                 {
-                    Console.Error.WriteLine(Environment.StackTrace);
+                    Console.Error.WriteLine(e.StackTrace);
                 }
             }
 
