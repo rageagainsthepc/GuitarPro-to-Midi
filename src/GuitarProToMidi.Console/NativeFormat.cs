@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using NLog;
 
@@ -633,15 +634,16 @@ namespace GuitarProToMidi {
                 mb.time = mh.timeSignature.numerator + "/" + mh.timeSignature.denominator.value;
                 mb.num = mh.timeSignature.numerator;
                 mb.den = mh.timeSignature.denominator.value;
-                string keyFull = ""+(int)mh.keySignature;
-                if (!(keyFull.Length == 1)) {
-                    mb.keyType = int.Parse(keyFull.Substring(keyFull.Length - 1));
-                    mb.key = int.Parse(keyFull.Substring(0,keyFull.Length-1));
+                string keyFull = "" + (int) mh.keySignature;
+                if (keyFull.Length != 1)
+                {
+                    mb.keyType = int.Parse(keyFull.Substring(keyFull.Length - 1), CultureInfo.InvariantCulture);
+                    mb.key = int.Parse(keyFull.Substring(0, keyFull.Length - 1), CultureInfo.InvariantCulture);
                 }
                 else
                 {
                     mb.key = 0;
-                    mb.keyType = int.Parse(keyFull);
+                    mb.keyType = int.Parse(keyFull, CultureInfo.InvariantCulture);
                 }
                 mb.keyBoth = keyFull; //Useful for midiExport later
 
