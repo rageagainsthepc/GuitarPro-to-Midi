@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace MidiExport {
     public class MidiExport
@@ -210,7 +211,7 @@ namespace MidiExport {
             this.time = time;
 
             //Meta Messages
-            if (type.Equals("sequence_number")) { is_meta = true; code = 0x00; number = int.Parse(args[0]); }
+            if (type.Equals("sequence_number")) { is_meta = true; code = 0x00; number = int.Parse(args[0], CultureInfo.InvariantCulture); }
             if (type.Equals("text") || type.Equals("copyright") || type.Equals("lyrics") || type.Equals("marker") || type.Equals("cue_marker"))
             {
                 is_meta = true;
@@ -230,37 +231,87 @@ namespace MidiExport {
             if (type.Equals("instrument_name")) code = 0x04;
             if (type.Equals("device_name")) code = 0x08;
 
-            if (type.Equals("channel_prefix")) { code = 0x20; channel = int.Parse(args[0]); is_meta = true; }
-            if (type.Equals("midi_port")) { code = 0x21; port = int.Parse(args[0]); is_meta = true; }
+            if (type.Equals("channel_prefix")) { code = 0x20; channel = int.Parse(args[0], CultureInfo.InvariantCulture); is_meta = true; }
+            if (type.Equals("midi_port")) { code = 0x21; port = int.Parse(args[0], CultureInfo.InvariantCulture); is_meta = true; }
             if (type.Equals("end_of_track")) { code = 0x2f; is_meta = true; }
-            if (type.Equals("set_tempo")) { code = 0x51; tempo = int.Parse(args[0]); is_meta = true; }
+            if (type.Equals("set_tempo")) { code = 0x51; tempo = int.Parse(args[0], CultureInfo.InvariantCulture); is_meta = true; }
 
             if (type.Equals("time_signature"))
             {
                 is_meta = true; code = 0x58;
-                numerator = int.Parse(args[0]);  //4
-                denominator = int.Parse(args[1]); //4
-                clocks_per_click = int.Parse(args[2]); //24
-                notated_32nd_notes_per_beat = int.Parse(args[3]); //8
+                numerator = int.Parse(args[0], CultureInfo.InvariantCulture);  //4
+                denominator = int.Parse(args[1], CultureInfo.InvariantCulture); //4
+                clocks_per_click = int.Parse(args[2], CultureInfo.InvariantCulture); //24
+                notated_32nd_notes_per_beat = int.Parse(args[3], CultureInfo.InvariantCulture); //8
             }
 
             if (type.Equals("key_signature"))
             {
                 is_meta = true; code = 0x59;
-                key = int.Parse(args[0]);
+                key = int.Parse(args[0], CultureInfo.InvariantCulture);
                 is_major = args[1].Equals("0"); //"0" or "1"
             }
 
 
             //Normal Messages
-            if (type.Equals("note_off")) { code = 0x80; channel = int.Parse(args[0]); note = int.Parse(args[1]); velocity = int.Parse(args[2]); }
-            if (type.Equals("note_on")) { code = 0x90; channel = int.Parse(args[0]); note = int.Parse(args[1]); velocity = int.Parse(args[2]); }
-            if (type.Equals("polytouch")) { code = 0xa0; channel = int.Parse(args[0]); note = int.Parse(args[1]); value = int.Parse(args[2]); }
-            if (type.Equals("control_change")) { code = 0xb0; channel = int.Parse(args[0]); control = int.Parse(args[1]); value = int.Parse(args[2]); }
-            if (type.Equals("program_change")) { code = 0xc0; channel = int.Parse(args[0]); program = int.Parse(args[1]); }
-            if (type.Equals("aftertouch")) { code = 0xd0; channel = int.Parse(args[0]); value = int.Parse(args[1]); }
-            if (type.Equals("pitchwheel")) { code = 0xe0; channel = int.Parse(args[0]); pitch = int.Parse(args[1]); }
-            if (type.Equals("sysex")) { code = 0xf0; this.data = data; }
+            if (type.Equals("note_off"))
+            {
+                code = 0x80;
+                channel = int.Parse(args[0], CultureInfo.InvariantCulture);
+                note = int.Parse(args[1], CultureInfo.InvariantCulture);
+                velocity = int.Parse(args[2], CultureInfo.InvariantCulture);
+            }
+
+            if (type.Equals("note_on"))
+            {
+                code = 0x90;
+                channel = int.Parse(args[0], CultureInfo.InvariantCulture);
+                note = int.Parse(args[1], CultureInfo.InvariantCulture);
+                velocity = int.Parse(args[2], CultureInfo.InvariantCulture);
+            }
+
+            if (type.Equals("polytouch"))
+            {
+                code = 0xa0;
+                channel = int.Parse(args[0], CultureInfo.InvariantCulture);
+                note = int.Parse(args[1], CultureInfo.InvariantCulture);
+                value = int.Parse(args[2], CultureInfo.InvariantCulture);
+            }
+
+            if (type.Equals("control_change"))
+            {
+                code = 0xb0;
+                channel = int.Parse(args[0], CultureInfo.InvariantCulture);
+                control = int.Parse(args[1], CultureInfo.InvariantCulture);
+                value = int.Parse(args[2], CultureInfo.InvariantCulture);
+            }
+
+            if (type.Equals("program_change"))
+            {
+                code = 0xc0;
+                channel = int.Parse(args[0], CultureInfo.InvariantCulture);
+                program = int.Parse(args[1], CultureInfo.InvariantCulture);
+            }
+
+            if (type.Equals("aftertouch"))
+            {
+                code = 0xd0;
+                channel = int.Parse(args[0], CultureInfo.InvariantCulture);
+                value = int.Parse(args[1], CultureInfo.InvariantCulture);
+            }
+
+            if (type.Equals("pitchwheel"))
+            {
+                code = 0xe0;
+                channel = int.Parse(args[0], CultureInfo.InvariantCulture);
+                pitch = int.Parse(args[1], CultureInfo.InvariantCulture);
+            }
+
+            if (type.Equals("sysex"))
+            {
+                code = 0xf0;
+                this.data = data;
+            }
 
         }
 
