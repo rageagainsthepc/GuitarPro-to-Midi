@@ -839,6 +839,36 @@ namespace GuitarProToMidi {
 
     public class BendPoint
     {
+        protected bool Equals(BendPoint other)
+        {
+            return value.Equals(other.value) && index == other.index && usedChannel == other.usedChannel;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return Equals((BendPoint) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(value, index, usedChannel);
+        }
+
         public float value = 0;
         public int index = 0; //also global index of midi
         public int usedChannel = 0; //After being part of BendingPlan
@@ -1423,6 +1453,36 @@ namespace GuitarProToMidi {
 
     public class BendingPlan
     {
+        protected bool Equals(BendingPlan other)
+        {
+            return bendingPoints.SequenceEqual(other.bendingPoints) && originalChannel == other.originalChannel && usedChannel == other.usedChannel;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return Equals((BendingPlan) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(bendingPoints, originalChannel, usedChannel);
+        }
+
         public List<BendPoint> bendingPoints = new List<BendPoint>();
         //List<int> positions = new List<int>(); //index where to put the points
         public int originalChannel = 0;
