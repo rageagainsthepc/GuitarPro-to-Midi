@@ -21,10 +21,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\GuitarProToMidi.Console\GuitarProToMidi.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
       <None Update="data/test_gp3.gp3">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
@@ -55,6 +51,10 @@
       <None Update="data/test_gp7.mid">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\GuitarProToMidi\GuitarProToMidi.csproj" />
     </ItemGroup>
 
 </Project>
