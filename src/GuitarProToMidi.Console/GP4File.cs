@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections;
+using System;
 using System.Collections.Generic;
+
+namespace GuitarProToMidi;
 
 public class GP4File : GPFile
 {
@@ -25,14 +26,14 @@ public class GP4File : GPFile
     public TripletFeel _tripletFeel;
     */
     public string[] notice;
-    
+
     public KeySignature key;
     public MidiChannel[] channels;
     public int measureCount;
     public int trackCount;
-   
+
     public RepeatGroup _currentRepeatGroup = new RepeatGroup();
-    
+
 
     public GP4File(byte[] _data)
     {
@@ -132,9 +133,9 @@ public class GP4File : GPFile
 */
         var tempo = new Tempo(this.tempo);
         var start = Duration.quarterTime;
-       foreach (MeasureHeader header in measureHeaders)
+        foreach (MeasureHeader header in measureHeaders)
         {
-           
+
             header.start = start;
             foreach (Track track in tracks)
             {
@@ -415,12 +416,12 @@ public class GP4File : GPFile
                 harmonic = new ArtificialHarmonic(pitch, octave);
                 break;
             case 17:
-                pitch = new PitchClass(note.realValue(), -1, "", "",12.0f);
+                pitch = new PitchClass(note.realValue(), -1, "", "", 12.0f);
                 octave = Octave.quindicesima;
                 harmonic = new ArtificialHarmonic(pitch, octave);
                 break;
             case 22:
-                pitch = new PitchClass(note.realValue(), -1, "", "",5.0f);
+                pitch = new PitchClass(note.realValue(), -1, "", "", 5.0f);
                 octave = Octave.ottava;
                 harmonic = new ArtificialHarmonic(pitch, octave);
                 break;
@@ -668,7 +669,7 @@ public class GP4File : GPFile
         {
             var value = GPBase.readSignedByte()[0];
             beatEffect.slapEffect = (SlapEffect)value;
-            
+
         }
         if ((flags2 & 0x04) != 0) beatEffect.tremoloBar = readTremoloBar();
 
@@ -687,11 +688,11 @@ public class GP4File : GPFile
         var strokeUp = GPBase.readSignedByte()[0];
         if (strokeUp > 0)
         {
-            return new BeatStroke(BeatStrokeDirection.up, toStrokeValue(strokeUp),0.0f);
+            return new BeatStroke(BeatStrokeDirection.up, toStrokeValue(strokeUp), 0.0f);
         }
         else
         {
-            return new BeatStroke(BeatStrokeDirection.down, toStrokeValue(strokeDown),0.0f);
+            return new BeatStroke(BeatStrokeDirection.down, toStrokeValue(strokeDown), 0.0f);
         }
     }
 
@@ -869,8 +870,8 @@ public class GP4File : GPFile
         }
         chord.omissions = GPBase.readBool(7);
         GPBase.skip(1);
-        List <Fingering> f = new List<Fingering>();
-        for (int x=0; x < 7; x++)
+        List<Fingering> f = new List<Fingering>();
+        for (int x = 0; x < 7; x++)
         {
             f.Add((Fingering)GPBase.readSignedByte()[0]);
         }
