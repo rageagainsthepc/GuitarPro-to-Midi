@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-public class GP7File : GPFile {
+namespace GuitarProToMidi;
+
+public class GP7File : GPFile
+{
 
     static string xml;
-    public List<Track> tracks;
+    public new List<Track> tracks;
 
     public GP7File(string data)
     {

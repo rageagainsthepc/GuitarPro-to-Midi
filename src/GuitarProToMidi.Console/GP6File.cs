@@ -1,8 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using NLog;
+
+namespace GuitarProToMidi;
 
 public class GP6File : GPFile
 {
@@ -69,7 +71,7 @@ public class GP6File : GPFile
             if (startOfXml == 0 && (char)GPBase.data[x] == '<' && (char)GPBase.data[x + 1] == 'G') startOfXml = x;
         }
         string xml = sb.ToString();
-        for (int x = startOfXml; x<xml.Length; x+=8000)
+        for (int x = startOfXml; x < xml.Length; x += 8000)
         {
             //Debug.Log(xml.Substring(x, 8000));
         }
@@ -86,7 +88,7 @@ public class GP6File : GPFile
         file.version = "GUITAR PRO 6.0";
         file.versionTuple = new int[] { 6, 0 };
         //set direct members of song:
-        file.title = node.getSubnodeByName("Score",true).subnodes[0].content;
+        file.title = node.getSubnodeByName("Score", true).subnodes[0].content;
         file.subtitle = node.getSubnodeByName("Score").subnodes[1].content;
         file.interpret = node.getSubnodeByName("Score").subnodes[2].content;
         file.album = node.getSubnodeByName("Score").subnodes[3].content;
@@ -94,13 +96,14 @@ public class GP6File : GPFile
         file.music = node.getSubnodeByName("Score").subnodes[5].content;
         file.copyright = node.getSubnodeByName("Score").subnodes[7].content;
         file.tab_author = node.getSubnodeByName("Score").subnodes[8].content;
-        file.instructional= node.getSubnodeByName("Score").subnodes[9].content;
+        file.instructional = node.getSubnodeByName("Score").subnodes[9].content;
         file.notice = node.getSubnodeByName("Score").subnodes[10].content.Split('\n'); //?
 
         //Page Layout
         Node nPageLayout = node.getSubnodeByName("Score", true).getSubnodeByName("PageSetup", true);
-        file.pageSetup = new global::PageSetup();
-        if (nPageLayout != null) {
+        file.pageSetup = new PageSetup();
+        if (nPageLayout != null)
+        {
 
             file.pageSetup.pageSize = new Point(int.Parse(nPageLayout.subnodes[0].content), int.Parse(nPageLayout.subnodes[1].content, CultureInfo.InvariantCulture));
             file.pageSetup.pageMargin = new Padding(int.Parse(nPageLayout.subnodes[5].content, CultureInfo.InvariantCulture),
@@ -112,20 +115,20 @@ public class GP6File : GPFile
         file.lyrics = transferLyrics(node.getSubnodeByName("Tracks"));
         //tempo, key, midiChannels, directions only on a per track / per measureHeader (MasterBar) basis
 
-        file.measureCount = node.getSubnodeByName("MasterBars",true).subnodes.Count;
-        file.trackCount = node.getSubnodeByName("Tracks",true).subnodes.Count;
+        file.measureCount = node.getSubnodeByName("MasterBars", true).subnodes.Count;
+        file.trackCount = node.getSubnodeByName("Tracks", true).subnodes.Count;
 
-        Node nAutomations = node.getSubnodeByName("MasterTrack", true).getSubnodeByName("Automations",true);
-        foreach(Node nAutomation in nAutomations.subnodes)
+        Node nAutomations = node.getSubnodeByName("MasterTrack", true).getSubnodeByName("Automations", true);
+        foreach (Node nAutomation in nAutomations.subnodes)
         {
             tempos.Add(new GP6Tempo(nAutomation));
         }
 
         file.measureHeaders = transferMeasureHeaders(node.getSubnodeByName("MasterBars"), file);
-        file.tracks = transferTracks(node.getSubnodeByName("Tracks", true),file);
+        file.tracks = transferTracks(node.getSubnodeByName("Tracks", true), file);
         rhythms = readRhythms(node.getSubnodeByName("Rhythms", true));
         chords = readChords(node.getSubnodeByName("Tracks", true));
-        transferBars( node, file); //Bars > Voices > Beats > Notes
+        transferBars(node, file); //Bars > Voices > Beats > Notes
 
         //TODO update global vars tempo, key, midiChannels, directions based on first value?
         return file;
@@ -157,7 +160,6 @@ public class GP6File : GPFile
             currentTrack = cnt % song.trackCount;
             if (currentTrack == 9)
             {
-                int a = 3;
             }
             cnt++;
             Node nSimileMark = nBar.getSubnodeByName("SimileMark", true);
@@ -211,13 +213,13 @@ public class GP6File : GPFile
         totalLength = flipDuration(bar.header.timeSignature.denominator) * bar.header.timeSignature.numerator;
         lengthPassed = 0;
         Voice voice = new Voice();
-        string[] beats = node.getSubnodeByName("Voices",true).subnodes[index].getSubnodeByName("Beats",true).content.Split(' ');
+        string[] beats = node.getSubnodeByName("Voices", true).subnodes[index].getSubnodeByName("Beats", true).content.Split(' ');
         voice.beats = new List<Beat>();
         voice.measure = bar;
 
         foreach (string beat in beats)
         {
-            voice.beats.Add(transferBeat(node, int.Parse(beat, CultureInfo.InvariantCulture),voice));
+            voice.beats.Add(transferBeat(node, int.Parse(beat, CultureInfo.InvariantCulture), voice));
         }
         return voice;
     }
@@ -244,7 +246,8 @@ public class GP6File : GPFile
         beat.duration.tuplet = rhythms[rhythmRef].primaryTuplet;
 
         //Check if should add tempo mark
-        if (currentTrack == 0) {
+        if (currentTrack == 0)
+        {
             lengthPassed += flipDuration(beat.duration);
 
             foreach (GP6Tempo tempo in tempos)
@@ -296,11 +299,11 @@ public class GP6File : GPFile
         if (nDynamic != null)
         {
             string dynamicSymbol = nDynamic.content;
-            string[] GP6symbols = {"PPP","PP","P", "MP", "MF","F","FF","FFF"};
+            string[] GP6symbols = { "PPP", "PP", "P", "MP", "MF", "F", "FF", "FFF" };
             int[] velocities = { Velocities.pianoPianissimo, Velocities.pianissimo, Velocities.piano,
             Velocities.mezzoPiano,Velocities.mezzoForte, Velocities.forte, Velocities.fortissimo,
             Velocities.forteFortissimo};
-            for (int x=0;x < GP6symbols.Length; x++)
+            for (int x = 0; x < GP6symbols.Length; x++)
             {
                 if (GP6symbols[x].Equals(dynamicSymbol)) { velocity = velocities[x]; break; }
             }
@@ -310,7 +313,7 @@ public class GP6File : GPFile
         beat.effect.fadeOut = nBeat.getSubnodeByName("Fadding", true) != null && nBeat.getSubnodeByName("Fadding", true).content.Equals("FadeOut");
         beat.effect.volumeSwell = nBeat.getSubnodeByName("Fadding", true) != null && nBeat.getSubnodeByName("Fadding", true).content.Equals("VolumeSwell");
 
-        if (nBeat.getSubnodeByName("FreeText",true) != null)
+        if (nBeat.getSubnodeByName("FreeText", true) != null)
         {
             beat.text = new BeatText(nBeat.getSubnodeByName("FreeText", true).content);
         }
@@ -353,21 +356,21 @@ public class GP6File : GPFile
                         beat.effect.slapEffect = SlapEffect.popping;
                         break;
                     case "Brush":
-                    {
-                        string direction = nProperty.subnodes[0].content;
-                        BeatStrokeDirection bsd = (direction.Equals("Up")) ? BeatStrokeDirection.up : BeatStrokeDirection.down;
-                        beat.effect.stroke = new BeatStroke();
-                        beat.effect.stroke.direction = bsd;
-                        searchBrushParams = true; //search in Xproperty
-                        break;
-                    }
+                        {
+                            string direction = nProperty.subnodes[0].content;
+                            BeatStrokeDirection bsd = (direction.Equals("Up")) ? BeatStrokeDirection.up : BeatStrokeDirection.down;
+                            beat.effect.stroke = new BeatStroke();
+                            beat.effect.stroke.direction = bsd;
+                            searchBrushParams = true; //search in Xproperty
+                            break;
+                        }
                     case "PickStroke":
-                    {
-                        string direction = nProperty.subnodes[0].content;
-                        BeatStrokeDirection bsd = (direction.Equals("Up")) ? BeatStrokeDirection.up : BeatStrokeDirection.down;
-                        beat.effect.pickStroke = bsd;
-                        break;
-                    }
+                        {
+                            string direction = nProperty.subnodes[0].content;
+                            BeatStrokeDirection bsd = (direction.Equals("Up")) ? BeatStrokeDirection.up : BeatStrokeDirection.down;
+                            beat.effect.pickStroke = bsd;
+                            break;
+                        }
                     case "VibratoWTremBar":
                         beat.effect.vibrato = true;
                         break;
@@ -440,7 +443,7 @@ public class GP6File : GPFile
             float middleOffset2 = float.Parse(nWhammy.propertyValues[5], CultureInfo.InvariantCulture);
             float destinationOffset = float.Parse(nWhammy.propertyValues[6], CultureInfo.InvariantCulture);
 
-            beat.effect.tremoloBar.points.Add(new BendPoint(0.0f,originValue));
+            beat.effect.tremoloBar.points.Add(new BendPoint(0.0f, originValue));
             beat.effect.tremoloBar.points.Add(new BendPoint(originOffset, originValue));
             //Peak or Valley
             if ((middleValue - originValue) * (destinationValue - middleValue) < 0)
@@ -457,7 +460,7 @@ public class GP6File : GPFile
         {
             if (searchBrushParams)
             {
-                int duration = int.Parse(nXProperty.getSubnodeByProperty("id","687935489").subnodes[0].content, CultureInfo.InvariantCulture);
+                int duration = int.Parse(nXProperty.getSubnodeByProperty("id", "687935489").subnodes[0].content, CultureInfo.InvariantCulture);
                 float startsOnTime = float.Parse(nXProperty.getSubnodeByProperty("id", "687935490").subnodes[0].content, CultureInfo.InvariantCulture);
                 beat.effect.stroke.setByGP6Standard(duration);
                 beat.effect.stroke.startTime = startsOnTime;
@@ -500,7 +503,7 @@ public class GP6File : GPFile
             //Give each Note a GraceEffect obj & Velocities val
             //velocity;
             bool tapping;
-            beat.notes.Add(transferNote(node, int.Parse(note, CultureInfo.InvariantCulture), beat,velocity, graceEffect, tremolo, out tapping));
+            beat.notes.Add(transferNote(node, int.Parse(note, CultureInfo.InvariantCulture), beat, velocity, graceEffect, tremolo, out tapping));
             if (tapping) beat.effect.slapEffect = SlapEffect.tapping;
 
         }
@@ -551,7 +554,7 @@ public class GP6File : GPFile
                         note.value = int.Parse(nProperty.subnodes[0].content, CultureInfo.InvariantCulture);
                         break;
                     case "String":
-                        note.str = int.Parse(nProperty.subnodes[0].content, CultureInfo.InvariantCulture)+1;
+                        note.str = int.Parse(nProperty.subnodes[0].content, CultureInfo.InvariantCulture) + 1;
                         break;
                     case "PalmMuted":
                         note.effect.palmMute = true;
@@ -590,51 +593,51 @@ public class GP6File : GPFile
                         bendOrigOff = float.Parse(nProperty.subnodes[0].content, CultureInfo.InvariantCulture);
                         break;
                     case "Slide":
-                    {
-                        note.effect.slides = new List<SlideType>();
-                        var flags = uint.Parse(nProperty.subnodes[0].content, CultureInfo.InvariantCulture);
-                        if (flags % 2 == 1)
                         {
-                            note.effect.slides.Add(SlideType.shiftSlideTo);
-                        }
+                            note.effect.slides = new List<SlideType>();
+                            var flags = uint.Parse(nProperty.subnodes[0].content, CultureInfo.InvariantCulture);
+                            if (flags % 2 == 1)
+                            {
+                                note.effect.slides.Add(SlideType.shiftSlideTo);
+                            }
 
-                        if ((flags >> 1) % 2 == 1)
-                        {
-                            note.effect.slides.Add(SlideType.legatoSlideTo);
-                        }
+                            if ((flags >> 1) % 2 == 1)
+                            {
+                                note.effect.slides.Add(SlideType.legatoSlideTo);
+                            }
 
-                        if ((flags >> 2) % 2 == 1)
-                        {
-                            note.effect.slides.Add(SlideType.outDownwards);
-                        }
+                            if ((flags >> 2) % 2 == 1)
+                            {
+                                note.effect.slides.Add(SlideType.outDownwards);
+                            }
 
-                        if ((flags >> 3) % 2 == 1)
-                        {
-                            note.effect.slides.Add(SlideType.outUpwards);
-                        }
+                            if ((flags >> 3) % 2 == 1)
+                            {
+                                note.effect.slides.Add(SlideType.outUpwards);
+                            }
 
-                        if ((flags >> 4) % 2 == 1)
-                        {
-                            note.effect.slides.Add(SlideType.intoFromBelow);
-                        }
+                            if ((flags >> 4) % 2 == 1)
+                            {
+                                note.effect.slides.Add(SlideType.intoFromBelow);
+                            }
 
-                        if ((flags >> 5) % 2 == 1)
-                        {
-                            note.effect.slides.Add(SlideType.intoFromAbove);
-                        }
+                            if ((flags >> 5) % 2 == 1)
+                            {
+                                note.effect.slides.Add(SlideType.intoFromAbove);
+                            }
 
-                        if ((flags >> 6) % 2 == 1)
-                        {
-                            note.effect.slides.Add(SlideType.pickScrapeOutDownwards);
-                        }
+                            if ((flags >> 6) % 2 == 1)
+                            {
+                                note.effect.slides.Add(SlideType.pickScrapeOutDownwards);
+                            }
 
-                        if ((flags >> 7) % 2 == 1)
-                        {
-                            note.effect.slides.Add(SlideType.pickScrapeOutUpwards);
-                        }
+                            if ((flags >> 7) % 2 == 1)
+                            {
+                                note.effect.slides.Add(SlideType.pickScrapeOutUpwards);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case "LeftHandTapped":
                     case "HopoDestination":
                         note.effect.hammer = true;
@@ -678,9 +681,10 @@ public class GP6File : GPFile
                 if (harmonicType.Equals("Natural") || harmonicType.Equals(""))
                 {
                     note.effect.harmonic = new NaturalHarmonic();  //Ignore the complicated GP3-5 settings
-                } else if (harmonicType.Equals("Artificial"))      //There should be during playback a function that reads only fret and type and creates the harmonic + for GP3-5 files that transfers the old format
-                        note.effect.harmonic = new ArtificialHarmonic();
-                 else if (harmonicType.Equals("Pinch")) note.effect.harmonic = new PinchHarmonic();
+                }
+                else if (harmonicType.Equals("Artificial"))      //There should be during playback a function that reads only fret and type and creates the harmonic + for GP3-5 files that transfers the old format
+                    note.effect.harmonic = new ArtificialHarmonic();
+                else if (harmonicType.Equals("Pinch")) note.effect.harmonic = new PinchHarmonic();
                 else if (harmonicType.Equals("Tap")) note.effect.harmonic = new TappedHarmonic();
                 else if (harmonicType.Equals("Semi")) note.effect.harmonic = new SemiHarmonic();
                 else if (harmonicType.Equals("Feedback")) note.effect.harmonic = new FeedbackHarmonic();
@@ -744,7 +748,8 @@ public class GP6File : GPFile
         if (nNote.getSubnodeByName("Tie") != null && nNote.getSubnodeByName("Tie").propertyValues[1].Equals("true"))
             note.type = NoteType.tie;
 
-        if (!tremolo.Equals("")) {
+        if (!tremolo.Equals(""))
+        {
             note.effect.tremoloPicking = new TremoloPickingEffect();
             //1/2 = 8th, 1/4 = 16ths, 1/8 = 32nds
             note.effect.tremoloPicking.duration = new Duration();
@@ -848,7 +853,7 @@ public class GP6File : GPFile
                 m = int.Parse(nTuplet.propertyValues[1], CultureInfo.InvariantCulture);
             }
 
-            ret_val.Add(new GP6Rhythm(cnt++,note, augCnt,n,m));
+            ret_val.Add(new GP6Rhythm(cnt++, note, augCnt, n, m));
         }
 
         return ret_val;
@@ -880,7 +885,8 @@ public class GP6File : GPFile
                 _track.channel.channel = int.Parse(nMidi.getSubnodeByName("PrimaryChannel").content, CultureInfo.InvariantCulture);
                 _track.channel.effectChannel = int.Parse(nMidi.getSubnodeByName("SecondaryChannel").content, CultureInfo.InvariantCulture);
                 _track.port = int.Parse(nMidi.getSubnodeByName("Port").content, CultureInfo.InvariantCulture);
-            } else
+            }
+            else
             { //GP7
                 _track.channel.instrument = int.Parse(nTrack.getSubnodeByName("Sounds").subnodes[0].getSubnodeByName("MIDI").getSubnodeByName("Program").content, CultureInfo.InvariantCulture);
                 _track.channel.channel = int.Parse(nTrack.getSubnodeByName("MidiConnection").getSubnodeByName("PrimaryChannel").content, CultureInfo.InvariantCulture);
@@ -904,7 +910,8 @@ public class GP6File : GPFile
                     }
                 }
             }
-            if (nProperties != null) {
+            if (nProperties != null)
+            {
                 Node nCapoFret = nProperties.getSubnodeByProperty("name", "CapoFret");
                 Node nFretCount = nProperties.getSubnodeByProperty("name", "FretCount");
                 if (nCapoFret != null) _track.offset = int.Parse(nCapoFret.subnodes[0].content, CultureInfo.InvariantCulture);
@@ -937,7 +944,7 @@ public class GP6File : GPFile
         return ret_val;
     }
 
-        public static List<MeasureHeader> transferMeasureHeaders(Node nMasterBars, GP5File song)
+    public static List<MeasureHeader> transferMeasureHeaders(Node nMasterBars, GP5File song)
     {
         var ret_val = new List<MeasureHeader>();
         int cnt = 0;
@@ -945,18 +952,19 @@ public class GP6File : GPFile
         {
             var _measureHeader = new MeasureHeader();
             int accidentals = int.Parse(nMasterBar.getSubnodeByName("Key", true).subnodes[0].content, CultureInfo.InvariantCulture);
-            int mode = (nMasterBar.getSubnodeByName("Key", true).subnodes[1].content.Equals("Major")) ? 0: 1;
+            int mode = (nMasterBar.getSubnodeByName("Key", true).subnodes[1].content.Equals("Major")) ? 0 : 1;
             _measureHeader.keySignature = (KeySignature)(accidentals * 10 + ((accidentals < 0) ? -mode : mode));
 
             _measureHeader.hasDoubleBar = nMasterBar.getSubnodeByName("DoubleBar", true) != null;
-            _measureHeader.direction = transferDirections(nMasterBar.getSubnodeByName("Directions",true));
+            _measureHeader.direction = transferDirections(nMasterBar.getSubnodeByName("Directions", true));
             _measureHeader.fromDirection = transferFromDirections(nMasterBar.getSubnodeByName("Directions", true));
             _measureHeader.isRepeatOpen = nMasterBar.getSubnodeByName("Repeat", true) != null && nMasterBar.getSubnodeByName("Repeat", true).propertyValues[0].Equals("true");
             _measureHeader.repeatClose = 0;
             if (nMasterBar.getSubnodeByName("Repeat", true) != null && nMasterBar.getSubnodeByName("Repeat", true).propertyValues[1].Equals("true"))
                 _measureHeader.repeatClose = int.Parse(nMasterBar.getSubnodeByName("Repeat", true).propertyValues[2], CultureInfo.InvariantCulture);
 
-            if (nMasterBar.getSubnodeByName("AlternateEndings", true) != null) {
+            if (nMasterBar.getSubnodeByName("AlternateEndings", true) != null)
+            {
                 var _aes = nMasterBar.getSubnodeByName("AlternateEndings", true).content.Split(' ');
                 foreach (string _ in _aes)
                 {
@@ -971,7 +979,7 @@ public class GP6File : GPFile
             _measureHeader.timeSignature.denominator.value = int.Parse(timeSig[1], CultureInfo.InvariantCulture);
 
             _measureHeader.tripletFeel = TripletFeel.none;
-            if (nMasterBar.getSubnodeByName("TripletFeel",true) != null)
+            if (nMasterBar.getSubnodeByName("TripletFeel", true) != null)
             {
                 string feel = nMasterBar.getSubnodeByName("TripletFeel", true).content;
                 if (feel.Equals("Triplet8th")) _measureHeader.tripletFeel = TripletFeel.eigth;
@@ -1045,116 +1053,117 @@ public class GP6File : GPFile
         return ret_val;
     }
 
-        public static Node ParseGP6(string xml, int start)
+    public static Node ParseGP6(string xml, int start)
+    {
+        //Remove '<' chars inside CDATA tags
+        bool skipMode = false;
+        for (int x = 0; x < xml.Length - 3; x++)
         {
-            //Remove '<' chars inside CDATA tags
-            bool skipMode = false;
-            for (int x = 0; x < xml.Length-3; x++)
-            {
-                string sub = xml.Substring(x, 3);
+            string sub = xml.Substring(x, 3);
 
-                if (sub.Equals("<!-")) { xml = xml.Substring(0, x) + '{' + xml.Substring(x + 1); continue; }
-                if (sub.Equals("<![")) { skipMode = true; continue; }
-                if (sub.Equals("]]>")) skipMode = false;
-                if (skipMode && xml[x] == '<') xml = xml.Substring(0,x)+'{'+xml.Substring(x+1);
-            }
-
-            string[] split = xml.Substring(start).Split('<');
-            int openTags = 0;
-            List<Node> stack = new List<Node>();
-            Node mainNode = new Node(new List<Node>(), new List<string>(), new List<string>(), "");
-            stack.Add(mainNode);
-            //Parse all Tags
-            for (int x = 1; x < split.Length; x++)
-            {
-                if (split[x].StartsWith("/"))
-                {
-                    //Closes a tag.
-                    openTags--;
-                    stack[stack.Count - 2].subnodes.Add(stack[stack.Count - 1]);
-                    stack[stack.Count - 2].content = ""; //content are the subnodes
-                    stack.RemoveAt(stack.Count - 1);
-
-                    continue;
-                }
-                if (split[x].StartsWith("!["))
-                {
-                    //normal string value encased in ![CDATA[ and ]]>
-                    //Already dealt with below (as content value of previous normal tag)
-                    continue;
-                }
-
-                //Is normal Tag (might have parameters in tag and might be closed with />
-                int endOfTag = split[x].IndexOf(">");
-                if (endOfTag == -1) break; //File Error
-                StringBuilder sb = new StringBuilder();
-                int firstSpace = split[x].IndexOf(' ');
-                int firstSlash = split[x].IndexOf('/');
-                if (firstSpace == -1 || firstSpace > endOfTag) firstSpace = endOfTag;
-                if (firstSlash != -1 && firstSlash < firstSpace) firstSpace = firstSlash;
-
-                string tagName = split[x].Substring(0,firstSpace);
-
-                int pos = firstSpace;
-                bool isSingleTag = false;
-                bool collectingPropertyValue = false;
-                StringBuilder property = new StringBuilder();
-                StringBuilder propertyValue = new StringBuilder();
-
-                List<string> propertyNames = new List<string>();
-                List<string> propertyValues = new List<string>();
-                while (pos < endOfTag)
-                {
-                    if (collectingPropertyValue && split[x][pos] != '"')
-                    { propertyValue.Append(split[x][pos]); pos++; continue; }
-                    if (collectingPropertyValue && split[x][pos] == '"')
-                    {
-                        collectingPropertyValue = false;
-                        propertyValues.Add(propertyValue.ToString());
-                        propertyValue = new StringBuilder();
-                        pos++;
-                        continue;
-                    }
-                    if (split[x][pos] != ' ' && split[x][pos] != '=' && split[x][pos] != '/')
-                    { property.Append(split[x][pos]); pos++; continue; }
-                    if (split[x][pos] == '/') { isSingleTag = true; break; }
-                    if (split[x][pos] == '=')
-                    {
-                        pos++;
-                        propertyNames.Add(property.ToString());
-                        property = new StringBuilder();
-                        collectingPropertyValue = true;
-                    }
-                    pos++;
-                }
-                if (isSingleTag)
-                {
-                    stack[stack.Count - 1].subnodes.Add(new Node(new List<Node>(),propertyNames,propertyValues,tagName));
-                    continue;
-                }
-
-                openTags++;
-                //Collect values outside of tag
-                string finalValue = "";
-                if (x < split.Length - 1)
-                {
-                    if (split[x + 1].StartsWith("!["))
-                    {
-                        finalValue = split[x + 1].Substring(8, split[x + 1].LastIndexOf("]]>")-8);
-
-                    } else
-                    {
-                        finalValue = split[x].Substring(endOfTag + 1);
-                    }
-                }
-
-                stack.Add(new Node(new List<Node>(),propertyNames,propertyValues,tagName,finalValue));
-            }
-            return stack[0];
+            if (sub.Equals("<!-")) { xml = xml.Substring(0, x) + '{' + xml.Substring(x + 1); continue; }
+            if (sub.Equals("<![")) { skipMode = true; continue; }
+            if (sub.Equals("]]>")) skipMode = false;
+            if (skipMode && xml[x] == '<') xml = xml.Substring(0, x) + '{' + xml.Substring(x + 1);
         }
-    }
 
-    //XML Classes
+        string[] split = xml.Substring(start).Split('<');
+        int openTags = 0;
+        List<Node> stack = new List<Node>();
+        Node mainNode = new Node(new List<Node>(), new List<string>(), new List<string>(), "");
+        stack.Add(mainNode);
+        //Parse all Tags
+        for (int x = 1; x < split.Length; x++)
+        {
+            if (split[x].StartsWith("/"))
+            {
+                //Closes a tag.
+                openTags--;
+                stack[stack.Count - 2].subnodes.Add(stack[stack.Count - 1]);
+                stack[stack.Count - 2].content = ""; //content are the subnodes
+                stack.RemoveAt(stack.Count - 1);
+
+                continue;
+            }
+            if (split[x].StartsWith("!["))
+            {
+                //normal string value encased in ![CDATA[ and ]]>
+                //Already dealt with below (as content value of previous normal tag)
+                continue;
+            }
+
+            //Is normal Tag (might have parameters in tag and might be closed with />
+            int endOfTag = split[x].IndexOf(">");
+            if (endOfTag == -1) break; //File Error
+            StringBuilder sb = new StringBuilder();
+            int firstSpace = split[x].IndexOf(' ');
+            int firstSlash = split[x].IndexOf('/');
+            if (firstSpace == -1 || firstSpace > endOfTag) firstSpace = endOfTag;
+            if (firstSlash != -1 && firstSlash < firstSpace) firstSpace = firstSlash;
+
+            string tagName = split[x].Substring(0, firstSpace);
+
+            int pos = firstSpace;
+            bool isSingleTag = false;
+            bool collectingPropertyValue = false;
+            StringBuilder property = new StringBuilder();
+            StringBuilder propertyValue = new StringBuilder();
+
+            List<string> propertyNames = new List<string>();
+            List<string> propertyValues = new List<string>();
+            while (pos < endOfTag)
+            {
+                if (collectingPropertyValue && split[x][pos] != '"')
+                { propertyValue.Append(split[x][pos]); pos++; continue; }
+                if (collectingPropertyValue && split[x][pos] == '"')
+                {
+                    collectingPropertyValue = false;
+                    propertyValues.Add(propertyValue.ToString());
+                    propertyValue = new StringBuilder();
+                    pos++;
+                    continue;
+                }
+                if (split[x][pos] != ' ' && split[x][pos] != '=' && split[x][pos] != '/')
+                { property.Append(split[x][pos]); pos++; continue; }
+                if (split[x][pos] == '/') { isSingleTag = true; break; }
+                if (split[x][pos] == '=')
+                {
+                    pos++;
+                    propertyNames.Add(property.ToString());
+                    property = new StringBuilder();
+                    collectingPropertyValue = true;
+                }
+                pos++;
+            }
+            if (isSingleTag)
+            {
+                stack[stack.Count - 1].subnodes.Add(new Node(new List<Node>(), propertyNames, propertyValues, tagName));
+                continue;
+            }
+
+            openTags++;
+            //Collect values outside of tag
+            string finalValue = "";
+            if (x < split.Length - 1)
+            {
+                if (split[x + 1].StartsWith("!["))
+                {
+                    finalValue = split[x + 1].Substring(8, split[x + 1].LastIndexOf("]]>") - 8);
+
+                }
+                else
+                {
+                    finalValue = split[x].Substring(endOfTag + 1);
+                }
+            }
+
+            stack.Add(new Node(new List<Node>(), propertyNames, propertyValues, tagName, finalValue));
+        }
+        return stack[0];
+    }
+}
+
+//XML Classes
 
 public class GP6Chord
 {
@@ -1168,7 +1177,7 @@ public class GP6Rhythm
     public int noteValue = 4; //4 = quarter, 16 = 16th etc.
     public int augmentationDots = 0; //0, 1 or 2
     public Tuplet primaryTuplet = new Tuplet();
-    public GP6Rhythm(int id, int noteValue, int augmentationDots, int n=1, int m=1)
+    public GP6Rhythm(int id, int noteValue, int augmentationDots, int n = 1, int m = 1)
     {
         this.id = id; this.noteValue = noteValue; this.augmentationDots = augmentationDots;
 
@@ -1200,24 +1209,24 @@ public class GP6Tempo
     }
 
 }
-    public class Node
+public class Node
+{
+    public string name = "";
+    public List<Node> subnodes = new List<Node>();
+    public List<string> propertyNames = new List<string>();
+    public List<string> propertyValues = new List<string>();
+    public string content;
+
+
+    public Node(List<Node> subnodes, List<string> propertyNames,
+        List<string> propertyValues, string name = "", string content = "")
     {
-        public string name = "";
-        public List<Node> subnodes = new List<Node>();
-        public List<string> propertyNames = new List<string>();
-        public List<string> propertyValues = new List<string>();
-        public string content;
+        this.subnodes = subnodes; this.propertyNames = propertyNames;
+        this.propertyValues = propertyValues; this.content = content;
+        this.name = name;
+    }
 
-
-        public Node(List<Node> subnodes, List<string> propertyNames,
-            List<string> propertyValues, string name = "", string content="")
-        {
-            this.subnodes = subnodes; this.propertyNames = propertyNames;
-            this.propertyValues = propertyValues; this.content = content;
-            this.name = name;
-        }
-
-        public Node getSubnodeByProperty(string propertyName, string property)
+    public Node getSubnodeByProperty(string propertyName, string property)
     {
         foreach (Node n in subnodes)
         {
@@ -1232,27 +1241,29 @@ public class GP6Tempo
         }
         return null;
     }
-        public Node getSubnodeByName(string name, bool directOnly = false)
+    public Node getSubnodeByName(string name, bool directOnly = false)
+    {
+        if (this.name.Equals(name)) return this;
+        if (directOnly) //Only search the direct children
         {
-            if (this.name.Equals(name)) return this;
-            if (directOnly) //Only search the direct children
-            {
-                foreach (Node n in subnodes)
-                {
-                    if (n.name.Equals(name)) return n;
-                }
-                return null;
-            } else {
             foreach (Node n in subnodes)
-                {
-                    Node sub = n.getSubnodeByName(name);
-                    if (sub != null) return sub;
-                }
+            {
+                if (n.name.Equals(name)) return n;
             }
-
             return null;
         }
+        else
+        {
+            foreach (Node n in subnodes)
+            {
+                Node sub = n.getSubnodeByName(name);
+                if (sub != null) return sub;
+            }
+        }
+
+        return null;
     }
+}
 
 /* //Class Structure following the xml file structure
 
@@ -1501,96 +1512,96 @@ public class GP6Tempo
 */
 
 public class BitStream
+{
+    public byte[] data;
+    private int pointer = 0;
+    private int subpointer = 0;
+    public bool finished = false;
+
+    public BitStream(byte[] data)
     {
-        public byte[] data;
-        private int pointer = 0;
-        private int subpointer = 0;
-        public bool finished = false;
+        this.data = data;
+        pointer = 0;
+        subpointer = 0;
+    }
+    public bool GetBit()
+    {
+        if (finished) return false;
+        bool ret_val = (data[pointer] >> (7 - subpointer)) % 2 == 1;
+        increase_subpointer();
+        return ret_val;
+    }
 
-        public BitStream(byte[] data)
+    public bool[] GetBits(int amount)
+    {
+        bool[] ret_val = new bool[amount];
+        for (int x = 0; x < amount; x++)
         {
-            this.data = data;
-            pointer = 0;
-            subpointer = 0;
+            ret_val[x] = GetBit();
         }
-        public bool GetBit()
+        return ret_val;
+    }
+
+    static private int[] powers_rev = new int[] { 128, 64, 32, 16, 8, 4, 2, 1 };
+
+    public byte GetByte()
+    {
+        byte ret_val = 0x00;
+        for (int x = 0; x < 8; x++)
         {
-            if (finished) return false;
-            bool ret_val = (data[pointer] >> (7 - subpointer)) % 2 == 1;
-            increase_subpointer();
-            return ret_val;
+            ret_val |= (byte)(GetBit() ? (powers_rev[x]) : 0);
         }
+        return ret_val;
+    }
+    static private int[] powers = new int[] { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024 };
 
-        public bool[] GetBits(int amount)
+    public int GetBitsLE(int amount)
+    { //returns the number represented by the next n bits, starting with the least significant bit
+        int ret_val = 0;
+
+        for (int x = 0; x < amount; x++)
         {
-            bool[] ret_val = new bool[amount];
-            for (int x = 0; x < amount; x++)
-            {
-                ret_val[x] = GetBit();
-            }
-            return ret_val;
+            bool val = GetBit();
+            ret_val |= val ? powers[x] : 0;
         }
+        return ret_val;
+    }
 
-        static private int[] powers_rev = new int[] { 128, 64, 32, 16, 8, 4, 2, 1 };
+    public int GetBitsBE(int amount)
+    { //returns the number represented by the next n bits, starting with the most significant bit
+        int ret_val = 0;
 
-        public byte GetByte()
+        for (int x = 0; x < amount; x++)
         {
-            byte ret_val = 0x00;
-            for (int x = 0; x < 8; x++)
-            {
-                ret_val |= (byte)(GetBit() ? (powers_rev[x]) : 0);
-            }
-            return ret_val;
+            bool val = GetBit();
+            ret_val |= val ? powers[amount - x - 1] : 0;
         }
-        static private int[] powers = new int[] { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024 };
+        return ret_val;
+    }
 
-        public int GetBitsLE(int amount)
-        { //returns the number represented by the next n bits, starting with the least significant bit
-            int ret_val = 0;
+    public void SkipBits(int bits)
+    {
+        for (int x = 0; x < bits; x++) increase_subpointer();
+    }
 
-            for (int x = 0; x < amount; x++)
-            {
-                bool val = GetBit();
-                ret_val |= val ? powers[x] : 0;
-            }
-            return ret_val;
-        }
-
-        public int GetBitsBE(int amount)
-        { //returns the number represented by the next n bits, starting with the most significant bit
-            int ret_val = 0;
-
-            for (int x = 0; x < amount; x++)
-            {
-                bool val = GetBit();
-                ret_val |= val ? powers[amount - x - 1] : 0;
-            }
-            return ret_val;
-        }
-
-        public void SkipBits(int bits)
-        {
-            for (int x = 0; x < bits; x++) increase_subpointer();
-        }
-
-        public void SkipBytes(int bytes)
-        {
-            for (int x = 0; x < bytes; x++) increase_pointer();
-
-        }
-
-        private void increase_pointer()
-        {
-            pointer++;
-        }
-
-        private void increase_subpointer()
-        {
-            subpointer++;
-            if (subpointer == 8) { subpointer = 0; pointer++; }
-            if (pointer >= data.Length) this.finished = true;
-        }
-
-
+    public void SkipBytes(int bytes)
+    {
+        for (int x = 0; x < bytes; x++) increase_pointer();
 
     }
+
+    private void increase_pointer()
+    {
+        pointer++;
+    }
+
+    private void increase_subpointer()
+    {
+        subpointer++;
+        if (subpointer == 8) { subpointer = 0; pointer++; }
+        if (pointer >= data.Length) this.finished = true;
+    }
+
+
+
+}

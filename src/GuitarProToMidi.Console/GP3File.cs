@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections;
+using System;
 using System.Collections.Generic;
+
+namespace GuitarProToMidi;
 
 public class GP3File : GPFile
 {
@@ -29,9 +30,9 @@ public class GP3File : GPFile
     public int measureCount;
     public int trackCount;
     public string[] notice;
-   
+
     public RepeatGroup _currentRepeatGroup = new RepeatGroup();
-    
+
 
     public GP3File(byte[] _data)
     {
@@ -43,7 +44,8 @@ public class GP3File : GPFile
     {
         header.song = this;
         measureHeaders.Add(header);
-        if (header.isRepeatOpen || (header.repeatAlternatives.Count > 0 && _currentRepeatGroup.isClosed && header.repeatAlternatives[0] <= 0)) {
+        if (header.isRepeatOpen || (header.repeatAlternatives.Count > 0 && _currentRepeatGroup.isClosed && header.repeatAlternatives[0] <= 0))
+        {
             _currentRepeatGroup = new RepeatGroup();
         }
         _currentRepeatGroup.addMeasureHeader(header);
@@ -78,7 +80,8 @@ public class GP3File : GPFile
         readMeasures();
     }
 
-    private string readVersion(){
+    private string readVersion()
+    {
         var version = GPBase.readByteSizeString(30);
         return version;
     }
@@ -86,7 +89,7 @@ public class GP3File : GPFile
     private int[] readVersionTuple() //bl0.12
     {
         var tuple = version.Substring(version.Length - 4).Split('.');
-        return new int[] {Convert.ToInt32(tuple[0]), Convert.ToInt32(tuple[1]) };
+        return new int[] { Convert.ToInt32(tuple[0]), Convert.ToInt32(tuple[1]) };
     }
 
     private void readMeasures()
@@ -141,7 +144,7 @@ public class GP3File : GPFile
     {
         //TODO: The pointer is 13 bytes too early here (when reading for measure 0xa of track 0x2, beats should return 1, not 898989)
         var beats = GPBase.readInt()[0];
-        for (int beat =0;beat < beats; beat++)
+        for (int beat = 0; beat < beats; beat++)
         {
             start += readBeat(start, voice);
         }
@@ -182,7 +185,8 @@ public class GP3File : GPFile
         if ((flags & 0x40) != 0)
         {
             beat.status = (BeatStatus)((int)GPBase.readByte()[0]);
-        } else
+        }
+        else
         {
             beat.status = BeatStatus.normal;
         }
@@ -200,7 +204,7 @@ public class GP3File : GPFile
         return (!(beat.status == BeatStatus.empty)) ? duration.time() : 0;
     }
 
-    private void readNotes (Track track, Beat beat, Duration duration, NoteEffect effect)
+    private void readNotes(Track track, Beat beat, Duration duration, NoteEffect effect)
     {
         /* First byte lists played strings:
 
@@ -214,8 +218,10 @@ public class GP3File : GPFile
         - *0x80*: *blank**/
 
         var stringFlags = GPBase.readByte()[0];
-        foreach (var str in track.strings){
-            if ((stringFlags & 1 << (7-str.number)) != 0){
+        foreach (var str in track.strings)
+        {
+            if ((stringFlags & 1 << (7 - str.number)) != 0)
+            {
                 var note = new Note(beat);
                 beat.notes.Add(note);
                 readNote(note, str, track);
@@ -286,11 +292,12 @@ public class GP3File : GPFile
         if ((flags & 0x08) != 0)
         {
             note.effect = readNoteEffects(note);
-            if (note.effect.isHarmonic() && note.effect.harmonic is TappedHarmonic){
+            if (note.effect.isHarmonic() && note.effect.harmonic is TappedHarmonic)
+            {
                 note.effect.harmonic.fret = note.value + 12;
             }
         }
-        
+
     }
 
     private NoteEffect readNoteEffects(Note note)
@@ -386,9 +393,9 @@ public class GP3File : GPFile
 
     private int getTiedNoteValue(int stringIndex, Track track)
     {
-        for (int measure = track.measures.Count-1;measure >= 0; measure--)
+        for (int measure = track.measures.Count - 1; measure >= 0; measure--)
         {
-            for (int voice = track.measures[measure].voices.Count-1;voice >=0; voice--)
+            for (int voice = track.measures[measure].voices.Count - 1; voice >= 0; voice--)
             {
                 foreach (var beat in track.measures[measure].voices[voice].beats)
                 {
@@ -437,30 +444,40 @@ public class GP3File : GPFile
         var phaser = GPBase.readSignedByte()[0];
         var tremolo = GPBase.readSignedByte()[0];
         var tempo = GPBase.readInt()[0];
-        if (instrument >= 0) {
+        if (instrument >= 0)
+        {
             tableChange.instrument = new MixTableItem(instrument);
         }
-        if (volume >= 0) {
+        if (volume >= 0)
+        {
             tableChange.volume = new MixTableItem(volume);
         }
-        if (balance >= 0) {
+        if (balance >= 0)
+        {
             tableChange.balance = new MixTableItem(balance);
         }
-        if (chorus >= 0) {
+        if (chorus >= 0)
+        {
             tableChange.chorus = new MixTableItem(chorus);
         }
-        if (reverb >= 0) {
+        if (reverb >= 0)
+        {
             tableChange.reverb = new MixTableItem(reverb);
         }
-        if (phaser >= 0) {
-            tableChange.phaser = new MixTableItem(phaser); }
-        if (tremolo >= 0) {
-            tableChange.tremolo = new MixTableItem(tremolo); }
-        if (tempo >= 0) {
+        if (phaser >= 0)
+        {
+            tableChange.phaser = new MixTableItem(phaser);
+        }
+        if (tremolo >= 0)
+        {
+            tableChange.tremolo = new MixTableItem(tremolo);
+        }
+        if (tempo >= 0)
+        {
             tableChange.tempo = new MixTableItem(tempo);
             measure.tempo().value = tempo;
         }
-        
+
     }
 
     private void readMixTableChangeDurations(MixTableChange tableChange)
@@ -514,7 +531,8 @@ public class GP3File : GPFile
             if (beatEffects.slapEffect == SlapEffect.none)
             {
                 beatEffects.tremoloBar = readTremoloBar();
-            } else
+            }
+            else
             {
                 GPBase.readInt();
             }
@@ -532,10 +550,11 @@ public class GP3File : GPFile
         var strokeUp = GPBase.readSignedByte()[0];
         if (strokeUp > 0)
         {
-            return new BeatStroke(BeatStrokeDirection.up, toStrokeValue(strokeUp),0.0f);
-        } else
+            return new BeatStroke(BeatStrokeDirection.up, toStrokeValue(strokeUp), 0.0f);
+        }
+        else
         {
-            return new BeatStroke(BeatStrokeDirection.down, toStrokeValue(strokeDown),0.0f);
+            return new BeatStroke(BeatStrokeDirection.down, toStrokeValue(strokeDown), 0.0f);
         }
     }
 
@@ -571,7 +590,7 @@ public class GP3File : GPFile
         barEffect.points = new List<BendPoint>();
         barEffect.points.Add(new BendPoint(0, 0));
         barEffect.points.Add(new BendPoint((int)Math.Round(BendEffect.maxPosition / 2.0f), (int)Math.Round(-barEffect.value / (double)GPBase.bendSemitone)));
-        barEffect.points.Add(new BendPoint(BendEffect.maxPosition,0));
+        barEffect.points.Add(new BendPoint(BendEffect.maxPosition, 0));
 
         return barEffect;
     }
@@ -590,7 +609,8 @@ public class GP3File : GPFile
         if (!chord.newFormat)
         {
             readOldChord(chord);
-        } else
+        }
+        else
         {
             readNewChord(chord);
         }
@@ -598,7 +618,7 @@ public class GP3File : GPFile
         return null;
     }
 
-    
+
 
     private void readOldChord(Chord chord)
     {
@@ -621,7 +641,7 @@ public class GP3File : GPFile
         chord.firstFret = GPBase.readInt()[0];
         if (chord.firstFret > 0)
         {
-            for (int i=0; i < 6; i++)
+            for (int i = 0; i < 6; i++)
             {
                 var fret = GPBase.readInt()[0];
                 if (i < chord.strings.Length) chord.strings[i] = fret;
@@ -702,7 +722,7 @@ public class GP3File : GPFile
         chord.ninth = (ChordAlteration)GPBase.readInt()[0];
         chord.eleventh = (ChordAlteration)GPBase.readInt()[0];
         chord.firstFret = GPBase.readInt()[0];
-        for (int i=0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
             var fret = GPBase.readInt()[0];
             if (i < chord.strings.Length) chord.strings[i] = fret;
@@ -713,7 +733,7 @@ public class GP3File : GPFile
         var barreStarts = GPBase.readInt(2);
         var barreEnds = GPBase.readInt(2);
 
-        for (int x=0; x < Math.Min(2, barresCount); x++)
+        for (int x = 0; x < Math.Min(2, barresCount); x++)
         {
             var barre = new Barre(barreFrets[x], barreStarts[x], barreEnds[x]);
             chord.barres.Add(barre);
@@ -721,7 +741,7 @@ public class GP3File : GPFile
         chord.omissions = GPBase.readBool(7);
         GPBase.skip(1);
     }
-   
+
 
     private Duration readDuration(byte flags)
     {
@@ -760,9 +780,9 @@ public class GP3File : GPFile
         return duration;
     }
 
-    private Beat getBeat(Voice voice,int start)
+    private Beat getBeat(Voice voice, int start)
     {
-        for (int x=voice.beats.Count-1; x>=0; x--)
+        for (int x = voice.beats.Count - 1; x >= 0; x--)
         {
             if (voice.beats[x].start == start) return voice.beats[x];
         }
@@ -884,7 +904,7 @@ public class GP3File : GPFile
 
         :param measureCount: number of measures to expect.*/
         MeasureHeader previous = null;
-        for (int number=1;number < measureCount + 1; number++)
+        for (int number = 1; number < measureCount + 1; number++)
         {
             var header = readMeasureHeader(number, previous);
             this.addMeasureHeader(header);
@@ -944,14 +964,16 @@ public class GP3File : GPFile
         if ((flags & 0x01) != 0)
         {
             header.timeSignature.numerator = GPBase.readSignedByte()[0];
-        } else
+        }
+        else
         {
             header.timeSignature.numerator = previous.timeSignature.numerator;
         }
         if ((flags & 0x02) != 0)
         {
             header.timeSignature.denominator.value = GPBase.readSignedByte()[0];
-        } else
+        }
+        else
         {
             header.timeSignature.denominator.value = previous.timeSignature.denominator.value;
         }
@@ -973,12 +995,13 @@ public class GP3File : GPFile
             sbyte root = GPBase.readSignedByte()[0];
             sbyte type_ = GPBase.readSignedByte()[0];
             int dir = (root < 0) ? -1 : 1;
-            header.keySignature = (KeySignature)((int)root*10+dir*type_);
-        } else if (header.number > 1)
+            header.keySignature = (KeySignature)((int)root * 10 + dir * type_);
+        }
+        else if (header.number > 1)
         {
             header.keySignature = previous.keySignature;
         }
-        header.hasDoubleBar = ((flags&0x80)!=0);
+        header.hasDoubleBar = ((flags & 0x80) != 0);
 
         return header;
     }
