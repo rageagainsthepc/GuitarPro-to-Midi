@@ -1,10 +1,9 @@
-namespace GuitarProToMidi.Native
+namespace GuitarProToMidi.Native;
+
+public enum Fading
 {
-    public enum Fading
-    {
-        None = 0,
-        FadeIn = 1,
-        FadeOut = 2,
-        VolumeSwell = 3
-    }
+    None = 0,
+    FadeIn = 1,
+    FadeOut = 2,
+    VolumeSwell = 3
 }

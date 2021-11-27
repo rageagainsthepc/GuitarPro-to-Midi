@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+
+namespace GuitarProToMidi;
 
 abstract public class GPFile
 {
@@ -22,10 +24,10 @@ abstract public class GPFile
     public string subtitle;
     public string interpret;
     public string album;
-    public string author ;
-    public string copyright ;
-    public string tab_author ;
-    public string instructional ;
+    public string author;
+    public string copyright;
+    public string tab_author;
+    public string instructional;
     public int[] versionTuple = new int[] { };
     public string version = "";
     public List<Lyrics> lyrics = new List<Lyrics>();
@@ -150,7 +152,7 @@ public class GPBase
 
     public static byte[] extract(int start, int length, bool advance_pointer)
     {
-       if (length <= 0)
+        if (length <= 0)
         {
             return new byte[Math.Max(0, length)];
         }
@@ -159,7 +161,7 @@ public class GPBase
             return new byte[Math.Max(0, length)];
         }
 
-            byte[] ret = new byte[length];
+        byte[] ret = new byte[length];
         for (int x = start; x < start + length; x++)
         {
             ret[x - start] = data[x];
@@ -294,7 +296,7 @@ public class BeatStroke
     {
         //GP6 will use value as 30 to 480 (64th to quarter note)
         int[] possibleVals = { 1, 2, 4, 8, 16, 32, 64 };
-        int translated = 64/(GP6Duration / 30);
+        int translated = 64 / (GP6Duration / 30);
         int lastVal = 0;
         foreach (int val in possibleVals)
         {
@@ -341,7 +343,7 @@ public class BeatStroke
         {
             direction = BeatStrokeDirection.up;
         }
-        return new BeatStroke(direction, value,0.0f);
+        return new BeatStroke(direction, value, 0.0f);
     }
 
 }
@@ -385,13 +387,15 @@ public class BendPoint
 
     public BendPoint(float position, float value, bool isGP6Format = true)
     {
-        if (isGP6Format) {
-        //GP6 Format: position: 0-100, value: 100 = 1 whole tone up
-        this.position = (int)(position * BendEffect.maxPosition / 100);
-        this.value = (int)(value*2*BendEffect.semitoneLength / 100);
+        if (isGP6Format)
+        {
+            //GP6 Format: position: 0-100, value: 100 = 1 whole tone up
+            this.position = (int)(position * BendEffect.maxPosition / 100);
+            this.value = (int)(value * 2 * BendEffect.semitoneLength / 100);
             GP6position = position;
             GP6value = value;
-        } else
+        }
+        else
         {
             this.position = (int)position;
             this.value = (int)value;
@@ -481,13 +485,13 @@ public class Duration
     { //From GP6 Format -> 30 = 64th, 480 = quarter, 1920 = whole
         int substract = 0;
         if (time >= 15) { value = hundredTwentyEigth; substract = 15; }
-        if (time >= 30) {value = sixtyFourth; substract = 30; }
-        if (time >= 60) {value = thirtySecond; substract = 60; }
-        if (time >= 120) {value = sixteenth; substract = 120; }
-        if (time >= 240) {value = eigth; substract = 240; }
-        if (time >= 480) {value = quarter; substract = 480; }
-        if (time >= 960) {value = half; substract = 960; }
-        if (time >= 1920) {value = whole; substract = 1920; }
+        if (time >= 30) { value = sixtyFourth; substract = 30; }
+        if (time >= 60) { value = thirtySecond; substract = 60; }
+        if (time >= 120) { value = sixteenth; substract = 120; }
+        if (time >= 240) { value = eigth; substract = 240; }
+        if (time >= 480) { value = quarter; substract = 480; }
+        if (time >= 960) { value = half; substract = 960; }
+        if (time >= 1920) { value = whole; substract = 1920; }
         time -= substract;
         if (time >= (float)(value * 0.5f)) isDotted = true;
         if (time >= (float)(value * 0.75f)) { isDotted = false; isDoubleDotted = true; }
@@ -537,16 +541,19 @@ public abstract class HarmonicEffect
     public int type = 0;
 }
 public class NaturalHarmonic : HarmonicEffect { public NaturalHarmonic() { type = 1; } }
-public class ArtificialHarmonic : HarmonicEffect {
+public class ArtificialHarmonic : HarmonicEffect
+{
     public PitchClass pitch;
     public Octave octave;
-    public ArtificialHarmonic(PitchClass pitch = null, Octave octave = 0) {
+    public ArtificialHarmonic(PitchClass pitch = null, Octave octave = 0)
+    {
         this.pitch = pitch;
         this.octave = octave;
         this.type = 2;
     }
 }
-public class TappedHarmonic : HarmonicEffect {
+public class TappedHarmonic : HarmonicEffect
+{
     public TappedHarmonic(int fret = 0)
     {
         this.fret = fret;
@@ -733,7 +740,7 @@ public class MidiChannel
 
 public enum WahState
 {
-    off =-2, none=-1, opened = 0, closed = 100
+    off = -2, none = -1, opened = 0, closed = 100
 }
 public class WahEffect
 {
@@ -858,7 +865,7 @@ public class NoteEffect
 public class Padding
 {
     public int right, top, left, bottom;
-    public Padding(int right = 0, int top=0, int left=0, int bottom = 0)
+    public Padding(int right = 0, int top = 0, int left = 0, int bottom = 0)
     {
         this.right = right; this.top = top; this.left = left; this.bottom = bottom;
     }
@@ -866,7 +873,7 @@ public class Padding
 public class Point
 {
     public int x, y;
-    public Point(int x=0, int y=0)
+    public Point(int x = 0, int y = 0)
     {
         this.x = x; this.y = y;
     }
@@ -908,7 +915,7 @@ public class PageSetup
           supported by layout)
         - ``%P%``: will be replaced with the number of pages (if supported
           by layout)*/
-    public Point pageSize = new Point(210,297);
+    public Point pageSize = new Point(210, 297);
     public Padding pageMargin = new Padding(10, 15, 10, 10);
     public float scoreSizeProportion = 1.0f;
     public HeaderFooterElements headerAndFooter = HeaderFooterElements.all;
@@ -924,44 +931,44 @@ public class PageSetup
 
 }
 public class PitchClass
-    {
-        /*Constructor provides several overloads. Each overload provides keyword
-        argument *intonation* that may be either "sharp" or "flat".
+{
+    /*Constructor provides several overloads. Each overload provides keyword
+    argument *intonation* that may be either "sharp" or "flat".
 
-        First of overloads is (tone, accidental):
+    First of overloads is (tone, accidental):
 
-        :param tone: integer of whole-tone.
-        :param accidental: flat (-1), none (0) or sharp (1).
+    :param tone: integer of whole-tone.
+    :param accidental: flat (-1), none (0) or sharp (1).
 
-        >>> p = PitchClass(4, -1)
-        >>> vars(p)
-        {'accidental': -1, 'intonation': 'flat', 'just': 4, 'value': 3}
-        >>> print p
-        Eb
-        >>> p = PitchClass(4, -1, intonation='sharp')
-        >>> vars(p)
-        {'accidental': -1, 'intonation': 'flat', 'just': 4, 'value': 3}
-        >>> print p
-        D#
+    >>> p = PitchClass(4, -1)
+    >>> vars(p)
+    {'accidental': -1, 'intonation': 'flat', 'just': 4, 'value': 3}
+    >>> print p
+    Eb
+    >>> p = PitchClass(4, -1, intonation='sharp')
+    >>> vars(p)
+    {'accidental': -1, 'intonation': 'flat', 'just': 4, 'value': 3}
+    >>> print p
+    D#
 
-        Second, semitone number can be directly passed to constructor:
+    Second, semitone number can be directly passed to constructor:
 
-        :param semitone: integer of semitone.
+    :param semitone: integer of semitone.
 
-        >>> p = PitchClass(3)
-        >>> print p
-        Eb
-        >>> p = PitchClass(3, intonation='sharp')
-        >>> print p
-        D#
+    >>> p = PitchClass(3)
+    >>> print p
+    Eb
+    >>> p = PitchClass(3, intonation='sharp')
+    >>> print p
+    D#
 
-        And last, but not least, note name:
+    And last, but not least, note name:
 
-        :param name: string representing note.
+    :param name: string representing note.
 
-        >>> p = PitchClass('D#')
-        >>> print p
-        D#*/
+    >>> p = PitchClass('D#')
+    >>> print p
+    D#*/
     public int just = 0;
     public int accidental = 0;
     public int value = 0;
@@ -994,7 +1001,7 @@ public class PitchClass
             {
                 value = arg0i % 12;
 
-                str = _notes_sharp[Math.Max(value,0)];
+                str = _notes_sharp[Math.Max(value, 0)];
                 if (intonation.Equals("flat")) str = _notes_flat[value];
             }
 
@@ -1060,7 +1067,7 @@ public class RSEMasterEffect
     public int volume = 0;
     public int reverb = 0;
     public RSEEqualizer equalizer = null;
-    public RSEMasterEffect(int volume=0, int reverb = 0, RSEEqualizer equalizer = null)
+    public RSEMasterEffect(int volume = 0, int reverb = 0, RSEEqualizer equalizer = null)
     {
         this.volume = volume;
         this.reverb = reverb;
@@ -1139,7 +1146,7 @@ public class RSEInstrument
 
 public enum Accentuation
 {
-    none=0, verySoft = 1, soft = 2, medium = 3, strong = 4, veryStrong = 5
+    none = 0, verySoft = 1, soft = 2, medium = 3, strong = 4, veryStrong = 5
 }
 public class TrackRSE
 {
@@ -1303,35 +1310,35 @@ public enum GraceEffectTransition
 public enum KeySignature
 {
     FMajorFlat = -80,
-   CMajorFlat = -70,
-   GMajorFlat = -60,
+    CMajorFlat = -70,
+    GMajorFlat = -60,
     DMajorFlat = -50,
     AMajorFlat = -40,
     EMajorFlat = -30,
     BMajorFlat = -20,
     FMajor = -10,
     CMajor = 00,
-   GMajor = 10,
+    GMajor = 10,
     DMajor = 20,
     AMajor = 30,
-   EMajor = 40,
-   BMajor = 50,
-   FMajorSharp = 60,
+    EMajor = 40,
+    BMajor = 50,
+    FMajorSharp = 60,
     CMajorSharp = 70,
     GMajorSharp = 80,
 
-   DMinorFlat = -81,
+    DMinorFlat = -81,
     AMinorFlat = -71,
     EMinorFlat = -61,
     BMinorFlat = -51,
     FMinor = -41,
-   CMinor = -31,
-   GMinor = -21,
-   DMinor = -11,
+    CMinor = -31,
+    GMinor = -21,
+    DMinor = -11,
     AMinor = 01,
     EMinor = 11,
-   BMinor = 21,
-   FMinorSharp = 31,
+    BMinor = 21,
+    FMinorSharp = 31,
     CMinorSharp = 41,
     GMinorSharp = 51,
     DMinorSharp = 61,
