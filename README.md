@@ -1,4 +1,6 @@
 ![Build status](https://github.com/rageagainsthepc/GuitarPro-to-Midi/actions/workflows/build.yml/badge.svg)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/cf3eccd35e954adb8489ad35d1bf5e9d)](https://www.codacy.com/gh/rageagainsthepc/GuitarPro-to-Midi/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rageagainsthepc/GuitarPro-to-Midi&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/cf3eccd35e954adb8489ad35d1bf5e9d)](https://www.codacy.com/gh/rageagainsthepc/GuitarPro-to-Midi/dashboard?utm_source=github.com&utm_medium=referral&utm_content=rageagainsthepc/GuitarPro-to-Midi&utm_campaign=Badge_Coverage)
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/rageagainsthepc/GuitarPro-to-Midi)
 
 # GuitarPro-to-Midi
