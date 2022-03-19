@@ -24,6 +24,16 @@ public class GpFileParserUnitTests
 
         Assert.Equal(expectedBytes, outputBytes);
     }
+
+    [Theory]
+    [InlineData("data/Weezer - My Name Is Jonas (ver 4).gp")]
+    [InlineData("/home/calm/Downloads/brush_test.gp")]
+    public void CreateMidiFile_ValidGpFile_NoThrow(string inputFile)
+    {
+        var parser = new GpFileParser(inputFile);
+
+        var unused = parser.CreateMidiFile();
+    }
 }
 
 [Collection("GpFileParserUnitTests")]

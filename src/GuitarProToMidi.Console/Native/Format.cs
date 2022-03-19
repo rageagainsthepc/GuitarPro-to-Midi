@@ -85,7 +85,7 @@ public class Format
         while (tempoIndex < _tempos.Count || masterBarIndex < _barMaster.Count)
         //Compare next entry of both possible sources
         {
-            if (tempoIndex == _tempos.Count || _tempos[tempoIndex].Position >= _barMaster[masterBarIndex].Index
+            if (tempoIndex >= _tempos.Count || (masterBarIndex < _barMaster.Count && _tempos[tempoIndex].Position >= _barMaster[masterBarIndex].Index)
             ) //next measure comes first
             {
                 if (!_barMaster[masterBarIndex].KeyBoth.Equals(oldKeySignature))

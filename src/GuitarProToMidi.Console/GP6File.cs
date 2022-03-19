@@ -461,7 +461,8 @@ public class GP6File : GPFile
             if (searchBrushParams)
             {
                 int duration = int.Parse(nXProperty.getSubnodeByProperty("id", "687935489").subnodes[0].content, CultureInfo.InvariantCulture);
-                float startsOnTime = float.Parse(nXProperty.getSubnodeByProperty("id", "687935490").subnodes[0].content, CultureInfo.InvariantCulture);
+                var startTimeSubnode = nXProperty.getSubnodeByProperty("id", "687935490");
+                float startsOnTime = startTimeSubnode != null ? float.Parse(startTimeSubnode.subnodes[0].content, CultureInfo.InvariantCulture) : 0;
                 beat.effect.stroke.setByGP6Standard(duration);
                 beat.effect.stroke.startTime = startsOnTime;
             }
