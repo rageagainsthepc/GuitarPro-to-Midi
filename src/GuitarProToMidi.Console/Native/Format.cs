@@ -284,7 +284,9 @@ public class Format
                 case SimileMark.none:
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(m.simileMark), m.simileMark, "Unknown enum value.");
+                    Console.WriteLine("Warning: Skipping unhandled data {0} {1} {2}", nameof(m.simileMark), m.simileMark,
+                        "Unknown enum value");
+                    continue;
             }
 
             foreach (var v in m.voices)
@@ -463,6 +465,7 @@ public class Format
                         if (_barMaster[measureIndex].TripletFeel != TripletFeel.none)
                         {
                             var trip = _barMaster[measureIndex].TripletFeel;
+
                             //Check if at regular 8th or 16th beat position
                             var is8ThPos = subIndex % 480 == 0;
                             var is16ThPos = subIndex % 240 == 0;
@@ -537,7 +540,8 @@ public class Format
                                 case TripletFeel.none:
                                     break;
                                 default:
-                                    throw new ArgumentOutOfRangeException(nameof(trip), trip, "Unknown enum value.");
+                                    Console.WriteLine("Warning: Skipping unhandled Triplet Feel {0} at beat {1} in measure {2}", trip, subIndex, measureIndex);
+                                    continue;
                             }
                         }
 
