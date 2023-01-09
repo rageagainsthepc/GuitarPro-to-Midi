@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using NLog;
 
 namespace GuitarProToMidi.Native;
 
 public class Format
 {
     public static readonly bool[] AvailableChannels = new bool[16];
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly string _album;
+   
 
     private readonly List<Annotation> _annotations = new();
     private readonly string _artist;
@@ -284,8 +287,7 @@ public class Format
                 case SimileMark.none:
                     break;
                 default:
-                    Console.WriteLine("Warning: Skipping unhandled data {0} {1} {2}", nameof(m.simileMark), m.simileMark,
-                        "Unknown enum value");
+                    logger.Warn("Warning: Skipping unhandled data {0} {1} {2}", nameof(m.simileMark), m.simileMark, "Unknown enum value");
                     continue;
             }
 
@@ -540,7 +542,7 @@ public class Format
                                 case TripletFeel.none:
                                     break;
                                 default:
-                                    Console.WriteLine("Warning: Skipping unhandled Triplet Feel {0} at beat {1} in measure {2}", trip, subIndex, measureIndex);
+                                    Logger.Warn("Warning: Skipping unhandled Triplet Feel {0} at beat {1} in measure {2}", trip, subIndex, measureIndex);
                                     continue;
                             }
                         }
