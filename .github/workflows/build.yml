@@ -31,13 +31,8 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore
       - name: Test solution
-        run: dotnet test --no-restore --collect:"XPlat Code Coverage"
+        run: dotnet test --no-restore
       - name: Check code formatting
         run: dotnet format --no-restore --verify-no-changes
       - name: Check code style
         run: dotnet format --no-restore --verify-no-changes style
-      - name: Upload coverage report
-        uses: codacy/codacy-coverage-reporter-action@v1
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: tests/GuitarProToMidi_UnitTests/TestResults/*/coverage.cobertura.xml
