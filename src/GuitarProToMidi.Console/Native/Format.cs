@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using NLog;
 
 namespace GuitarProToMidi.Native;
 
 public class Format
 {
     public static readonly bool[] AvailableChannels = new bool[16];
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly string _album;
+   
 
     private readonly List<Annotation> _annotations = new();
     private readonly string _artist;
@@ -284,7 +287,8 @@ public class Format
                 case SimileMark.none:
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(m.simileMark), m.simileMark, "Unknown enum value.");
+                    logger.Warn("Warning: Skipping unhandled data {0} {1} {2}", nameof(m.simileMark), m.simileMark, "Unknown enum value");
+                    continue;
             }
 
             foreach (var v in m.voices)
@@ -463,6 +467,7 @@ public class Format
                         if (_barMaster[measureIndex].TripletFeel != TripletFeel.none)
                         {
                             var trip = _barMaster[measureIndex].TripletFeel;
+
                             //Check if at regular 8th or 16th beat position
                             var is8ThPos = subIndex % 480 == 0;
                             var is16ThPos = subIndex % 240 == 0;
@@ -537,7 +542,8 @@ public class Format
                                 case TripletFeel.none:
                                     break;
                                 default:
-                                    throw new ArgumentOutOfRangeException(nameof(trip), trip, "Unknown enum value.");
+                                    Logger.Warn("Warning: Skipping unhandled Triplet Feel {0} at beat {1} in measure {2}", trip, subIndex, measureIndex);
+                                    continue;
                             }
                         }
 
