@@ -287,7 +287,7 @@ public class Format
                 case SimileMark.none:
                     break;
                 default:
-                    logger.Warn("Warning: Skipping unhandled data {0} {1} {2}", nameof(m.simileMark), m.simileMark, "Unknown enum value");
+                    Logger.Warn("Warning: Skipping unhandled data {0} {1} {2}", nameof(m.simileMark), m.simileMark, "Unknown enum value");
                     continue;
             }
 
