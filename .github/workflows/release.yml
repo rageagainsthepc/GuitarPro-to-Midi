@@ -24,7 +24,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '6.0.x'
+        dotnet-version: '7.0.x'
     - name: Build self-contained binary
       run: dotnet publish -r ${{ matrix.dotnet-platform }} -p:PublishSingleFile=true --self-contained true
     - name: Upload artifact
