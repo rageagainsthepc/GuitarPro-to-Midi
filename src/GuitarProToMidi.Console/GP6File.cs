@@ -868,7 +868,7 @@ public class GP6File : GPFile
             Track _track = new Track(song, cnt++);
             _track.name = nTrack.getSubnodeByName("Name").content;
             string[] colors = nTrack.getSubnodeByName("Color").content.Split(' ');
-            _track.color = new myColor(int.Parse(colors[0]), int.Parse(colors[1]), int.Parse(colors[2], CultureInfo.InvariantCulture));
+            _track.color = new myColor(int.Parse(colors[0], CultureInfo.InvariantCulture), int.Parse(colors[1], CultureInfo.InvariantCulture), int.Parse(colors[2], CultureInfo.InvariantCulture));
             _track.channel = new MidiChannel();
 
             string[] param = nTrack.getSubnodeByName("RSE").getSubnodeByName("ChannelStrip").getSubnodeByName("Parameters").content.Split(' ');
