@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using NLog;
 
@@ -14,11 +15,21 @@ public class GpFileParser
     public GpFileParser(string filePath)
     {
         _filePath = filePath;
-        _extension = Path.GetExtension(filePath);
+        _extension = (Path.GetExtension(filePath) ?? string.Empty).ToLowerInvariant();
     }
 
     public byte[] CreateMidiFile()
     {
+        if (string.IsNullOrWhiteSpace(_filePath))
+        {
+            throw new ArgumentException("Input file path is empty.");
+        }
+
+        if (!File.Exists(_filePath))
+        {
+            throw new FileNotFoundException("Input file not found.", _filePath);
+        }
+
         var loader = File.ReadAllBytes(_filePath);
 
         switch (_extension)
@@ -56,8 +67,8 @@ public class GpFileParser
 
                 break;
             default:
-                Logger.Error("Unknown File Format");
-                break;
+                throw new NotSupportedException(
+                    $"Unsupported file format '{_extension}'. Supported extensions: .gp3, .gp4, .gp5, .gpx, .gp");
         }
 
         Logger.Debug("Done");
