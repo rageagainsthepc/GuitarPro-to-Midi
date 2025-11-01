@@ -37,6 +37,12 @@ internal static class Program
 
             ConfigureLogging(verbose.HasValue() ? LogLevel.Debug : LogLevel.Info);
 
+            if (!File.Exists(inputFile.Value))
+            {
+                Console.Error.WriteLine($"Error: Input file not found: {inputFile.Value}");
+                return 1;
+            }
+
             var gpFile = new GpFileParser(inputFile.Value);
             var midiBytes = gpFile.CreateMidiFile();
             using var fs = new FileStream(
