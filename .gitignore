@@ -3,3 +3,4 @@ obj/
 .vscode/
 *.user
 .theia/
+.vs/
