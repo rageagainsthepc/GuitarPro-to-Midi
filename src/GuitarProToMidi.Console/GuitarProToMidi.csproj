@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <Version>0.1.5</Version>
     <TargetFramework>net9.0</TargetFramework>
     <LangVersion>default</LangVersion>
     <RootNamespace>GuitarProToMidi</RootNamespace>
